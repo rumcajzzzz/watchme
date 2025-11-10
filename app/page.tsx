@@ -46,10 +46,17 @@ export default function Home() {
       imageOpacity,
       mediaUrl,
       mediaType,
-    }
-    const encoded = btoa(JSON.stringify(screenData))
-    router.push(`/view/${encoded}`)
-  }
+    };
+  
+    // Generate short 10-character ID
+    const id = Math.random().toString(36).substring(2, 12);
+  
+    // Save data in localStorage
+    localStorage.setItem(`screenData-${id}`, JSON.stringify(screenData));
+  
+    // Navigate to short URL
+    router.push(`/view/${id}`);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
