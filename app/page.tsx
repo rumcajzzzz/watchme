@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 type Step = "start" | "background" | "media" | "complete"
 type BackgroundType = "color" | "image"
@@ -17,6 +18,7 @@ export default function Home() {
   const [mediaUrl, setMediaUrl] = useState<string>("")
   const [mediaType, setMediaType] = useState<"gif" | "video">("gif")
   const [showContent, setShowContent] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100)
@@ -38,25 +40,44 @@ export default function Home() {
     }, 500)
   }
 
-  const handleMediaConfirm = () => {
-    const screenData = {
-      backgroundType,
-      backgroundColor,
-      backgroundImage,
-      imageOpacity,
-      mediaUrl,
-      mediaType,
-    };
-  
-    // Generate short 10-character ID
-    const id = Math.random().toString(36).substring(2, 12);
-  
-    // Save data in localStorage
-    localStorage.setItem(`screenData-${id}`, JSON.stringify(screenData));
-  
-    // Navigate to short URL
-    router.push(`/view/${id}`);
-  };
+  const handleMediaConfirm = async () => {
+    setIsCreating(true)
+
+    try {
+      const supabase = createClient()
+
+      // Generate short 10-character ID
+      const id = Math.random().toString(36).substring(2, 12)
+
+      const screenData = {
+        id,
+        background_type: backgroundType,
+        background_color: backgroundColor,
+        background_image: backgroundImage,
+        image_opacity: imageOpacity,
+        media_url: mediaUrl,
+        media_type: mediaType,
+      }
+
+      // Insert into Supabase
+      const { error } = await supabase.from("screens").insert(screenData)
+
+      if (error) {
+        console.error("[v0] Error saving to Supabase:", error)
+        throw error
+      }
+
+      console.log("[v0] Screen saved successfully with ID:", id)
+
+      // Navigate to the view page
+      router.push(`/view/${id}`)
+    } catch (error) {
+      console.error("[v0] Failed to create screen:", error)
+      alert("Failed to create screen. Please try again.")
+    } finally {
+      setIsCreating(false)
+    }
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -127,11 +148,7 @@ export default function Home() {
           {mediaType === "video" ? (
             <video src={mediaUrl} autoPlay loop muted className="max-w-full max-h-full" />
           ) : (
-            <img
-              src={mediaUrl || "/placeholder.svg"}
-              alt="Media"
-              className="max-w-full max-h-full object-contain"
-            />
+            <img src={mediaUrl || "/placeholder.svg"} alt="Media" className="max-w-full max-h-full object-contain" />
           )}
         </div>
       )}
@@ -308,9 +325,10 @@ export default function Home() {
             <button
               type="button"
               onClick={handleMediaConfirm}
-              className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-20 py-6 text-xl rounded-full mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500"
+              disabled={isCreating}
+              className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-20 py-6 text-xl rounded-full mt-10 animate-in fade-in slide-in-from-bottom-4 duration-500 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="relative z-10">Create →</span>
+              <span className="relative z-10">{isCreating ? "Creating..." : "Create →"}</span>
               <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
             </button>
           )}
