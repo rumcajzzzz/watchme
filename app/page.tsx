@@ -220,6 +220,7 @@ export default function Home() {
       setLoadingProgress(0)
     }
   }
+  
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -328,7 +329,7 @@ export default function Home() {
       )}
 
       {/* Media display */}
-      {(step === "media" || step === "audio" || step === "settings") && mediaUrl && (
+      {(step === "audio" || step === "settings") && mediaUrl && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           {mediaType === "video" ? (
             <video
@@ -617,6 +618,47 @@ export default function Home() {
                 {mediaUrl ? "Change file" : `Upload ${mediaType === "gif" ? "GIF" : "Video"}`}
               </div>
             </label>
+            {mediaUrl && (
+              <>
+                {mediaUrl && mediaType === "gif" && (
+                  <img
+                    src={mediaUrl}
+                    alt="GIF Preview"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: `translate(-50%, -50%) scale(${mediaScale / 100})`,
+                      pointerEvents: "none",
+                      zIndex: 0,
+                      opacity: 0.15,
+                      maxWidth: "none",
+                      maxHeight: "none",
+                    }}
+                  />
+                )}
+
+                {mediaType === "video" && (
+                  <video
+                    ref={videoRef}
+                    src={mediaUrl}
+                    autoPlay
+                    loop
+                    muted
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: `translate(-50%, -50%) scale(${videoScale / 100})`,
+                      opacity: 0.15,
+                      pointerEvents: "none",
+                      zIndex: 0,
+                      filter: "blur(2px)",
+                    }}
+                  />
+                )}
+              </>
+            )}
             <span className="text-white/20 text-xs block">Max file size: 50MB</span>
             {mediaUrl && (
               <>
@@ -675,12 +717,52 @@ export default function Home() {
       {/* AUDIO STEP */}
       {step === "audio" && (
         <div
-          className={`flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
+          className={`relative flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
             showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
-          onKeyPress={handleAudioKeyPress}
+          onKeyUp={handleAudioKeyPress}
           tabIndex={0}
         >
+          {/* MEDIA PREVIEW */}
+          {mediaUrl && (
+            <>
+              {mediaType === "gif" && (
+                <img
+                  src={mediaUrl}
+                  alt="GIF Preview"
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: `translate(-50%, -50%) scale(${mediaScale / 100})`,
+                    pointerEvents: "none",
+                    zIndex: 0,
+                    opacity: 0.15, 
+                  }}
+                />
+              )}
+
+              {mediaType === "video" && (
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  autoPlay
+                  loop
+                  muted
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: `translate(-50%, -50%) scale(${videoScale / 100})`,
+                    pointerEvents: "none",
+                    zIndex: 0,
+                    opacity: 0.15,
+                  }}
+                />
+              )}
+            </>
+          )}
+
           <h2 className="text-white text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3">
             add audio?
           </h2>
@@ -745,23 +827,6 @@ export default function Home() {
                     Mute original video audio
                   </span>
                 </label>
-
-                {/* <div className="text-white/40 text-xs font-light tracking-[0.2em] uppercase mt-2">
-                  Add background audio (optional)
-                </div>
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={handleVideoAudioUpload}
-                  className="hidden"
-                  id="video-audio-upload"
-                  key={videoAudioUrl || "video-audio-input"}
-                />
-                <label htmlFor="video-audio-upload" className="cursor-pointer">
-                  <div className="px-10 py-3 rounded-full text-white text-sm border-2 border-white/20 hover:border-white/50 bg-gradient-to-br from-white/5 to-white/0 hover:from-white/10 hover:to-white/0 transition-all duration-500 hover:scale-105 backdrop-blur-md font-light tracking-[0.15em] uppercase">
-                    {videoAudioUrl ? "Change Background Audio" : "Add Background Audio"}
-                  </div>
-                </label> */}
 
                 {videoAudioUrl && (
                   <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">

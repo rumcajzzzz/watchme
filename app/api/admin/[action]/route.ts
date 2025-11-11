@@ -3,48 +3,48 @@ import type { NextRequest } from "next/server";
 
 const supabaseAdmin = createAdminClient();
 
-// Rekurencyjne czyszczenie bucketu
-async function clearBucket(bucketName: string, path = "") {
-  console.log(`Listing items in bucket "${bucketName}" at path "${path}"`);
-  const { data: items, error } = await supabaseAdmin.storage.from(bucketName).list(path, { limit: 1000 });
+async function clearBucket(bucketName: string, folderPath: string) {
+  try {
+    console.log(`Clearing folder "${folderPath}" in bucket "${bucketName}"`);
 
-  if (error) {
-    console.error(`Error listing items in bucket "${bucketName}" at path "${path}":`, error);
-    throw error;
-  }
+    const { data: items, error } = await supabaseAdmin.storage
+      .from(bucketName)
+      .list(folderPath, { limit: 1000, recursive: true });
 
-  if (!items || items.length === 0) return;
-
-  for (const item of items) {
-    const fullPath = path ? `${path}/${item.name}` : item.name;
-
-    // Usuń plik (foldery nie są osobnymi obiektami)
-    console.log(`Removing from bucket "${bucketName}": [ '${fullPath}' ]`);
-    const { data, error: removeError } = await supabaseAdmin.storage.from(bucketName).remove([fullPath]);
-    if (removeError) {
-      console.error(`Failed to remove file "${fullPath}" from bucket "${bucketName}":`, removeError);
-    } else {
-      console.log(`Removed files:`, data);
+    if (error) throw error;
+    if (!items || items.length === 0) {
+      console.log(`No files found in folder "${folderPath}"`);
+      return;
     }
+
+    const pathsToRemove = items.map(item => item.name); // <- kluczowe
+    const { data: removed, error: removeError } = await supabaseAdmin.storage
+      .from(bucketName)
+      .remove(pathsToRemove);
+
+    if (removeError) throw removeError;
+    console.log(`Removed items from folder "${folderPath}":`, removed);
+  } catch (err) {
+    console.error(`Failed to clear folder "${folderPath}" in bucket "${bucketName}":`, err);
   }
 }
 
-// Czyści wszystkie buckety
+
+
+
 async function clearAllBuckets() {
-  const { data: buckets, error } = await supabaseAdmin.storage.listBuckets();
-  if (error) {
-    console.error("Error listing buckets:", error);
-    throw error;
-  }
-  if (!buckets) return;
+  const foldersToClear = {
+    media: "media",
+    audio: "audio",
+    backgrounds: "backgrounds"
+  };
 
-  for (const bucket of buckets) {
-    console.log(`Clearing bucket "${bucket.name}"`);
-    await clearBucket(bucket.name);
+  for (const [bucketName, folderPath] of Object.entries(foldersToClear)) {
+    console.log(`Clearing folder "${folderPath}" in bucket "${bucketName}"`);
+    await clearBucket(bucketName, folderPath);
   }
 }
 
-// Endpoint API
 export async function POST(req: NextRequest, context: { params: Promise<{ action: string }> }) {
   try {
     const resolvedParams = await context.params;
@@ -56,8 +56,17 @@ export async function POST(req: NextRequest, context: { params: Promise<{ action
     }
 
     if (action === "clearBuckets") {
-      await clearAllBuckets();
-      return new Response(JSON.stringify({ message: "All bucket objects cleared." }), { status: 200 });
+      const buckets = ["media", "audio", "backgrounds"];
+      for (const bucket of buckets) {
+        console.log(`Emptying bucket "${bucket}"`);
+        const { data, error } = await supabaseAdmin.storage.emptyBucket(bucket);
+        if (error) {
+          console.error(`Failed to empty bucket "${bucket}":`, error);
+        } else {
+          console.log(`Bucket "${bucket}" emptied successfully:`, data);
+        }
+      }
+      return new Response(JSON.stringify({ message: "All buckets emptied." }), { status: 200 });
     }
 
     if (action === "clearTables") {

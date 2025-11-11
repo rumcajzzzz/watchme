@@ -44,11 +44,60 @@ export default function AdminPage() {
   }
 
   return (
-    <div style={{ background: "#111", color: "#fff", minHeight: "100vh", padding: 20 }}>
-      <h1>Admin Panel</h1>
-      <button onClick={() => handleAction("clearBuckets")} style={{ marginRight: 10, padding: 10 }}>Clear Buckets</button>
-      <button onClick={() => handleAction("clearTables")} style={{ padding: 10 }}>Clear Tables</button>
-      {message && <p>{message}</p>}
+    <div
+      style={{
+        background: "#111",
+        color: "#fff",
+        minHeight: "100vh",
+        padding: "20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        gap: "20px",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <h1 style={{ textAlign: "center" }}>Admin Panel</h1>
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", justifyContent: "center" }}>
+        <button
+          onClick={() => handleAction("clearBuckets")}
+          style={{
+            padding: "12px 20px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            background: "#4f46e5",
+            color: "#fff",
+            fontWeight: "bold",
+            transition: "background 0.3s",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.background = "#6366f1")}
+          onMouseOut={(e) => (e.currentTarget.style.background = "#4f46e5")}
+        >
+          Clear Buckets
+        </button>
+        <button
+          onClick={() => handleAction("clearTables")}
+          style={{
+            padding: "12px 20px",
+            borderRadius: "8px",
+            border: "none",
+            cursor: "pointer",
+            background: "#4f46e5",
+            color: "#fff",
+            fontWeight: "bold",
+            transition: "background 0.3s",
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.background = "#6366f1")}
+          onMouseOut={(e) => (e.currentTarget.style.background = "#4f46e5")}
+        >
+          Clear Tables
+        </button>
+      </div>
+      {message && (
+        <p style={{ textAlign: "center", color: "#fbbf24", marginTop: "10px" }}>{message}</p>
+      )}
     </div>
   );
 }
