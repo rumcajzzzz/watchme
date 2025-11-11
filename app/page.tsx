@@ -5,6 +5,30 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
+const supabase = createClient()
+
+async function uploadToSupabase(file: File, folder = "media"): Promise<string> {
+  const fileExt = file.name.split(".").pop()
+  const fileName = `${Date.now()}.${fileExt}`
+  const filePath = `${folder}/${fileName}`
+
+  try {
+    const { data: uploadData, error: uploadError } = await supabase.storage.from(folder).upload(filePath, file)
+    if (uploadError) {
+      console.error("Supabase upload error:", uploadError)
+      throw uploadError
+    }
+    console.log("Upload data:", uploadData)
+
+    const { data } = supabase.storage.from(folder).getPublicUrl(filePath)
+    if (!data?.publicUrl) throw new Error("No public URL returned")
+    return data.publicUrl
+  } catch (err) {
+    console.error("Upload failed in uploadToSupabase:", err)
+    throw err
+  }
+}
+
 type Step = "nickname" | "background" | "media" | "audio" | "settings"
 type BackgroundType = "color" | "image"
 type MediaType = "gif" | "video"
@@ -21,7 +45,7 @@ export default function Home() {
   const [mediaUrl, setMediaUrl] = useState<string>("")
   const [mediaType, setMediaType] = useState<MediaType>("gif")
   const [videoScale, setVideoScale] = useState<number>(100)
-  const [showVideoControls, setShowVideoControls] = useState<boolean>(true)
+  const [showVideoControls, setShowVideoControls] = useState<boolean>(false)
   const [audioUrl, setAudioUrl] = useState<string>("")
   const [audioVolume, setAudioVolume] = useState<number>(50)
   const [videoAudioUrl, setVideoAudioUrl] = useState<string>("")
@@ -31,6 +55,8 @@ export default function Home() {
   const [showContent, setShowContent] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
+  const [videoVolume, setVideoVolume] = useState<number>(100)
+  const [mediaScale, setMediaScale] = useState<number>(100)
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const videoAudioRef = useRef<HTMLAudioElement>(null)
@@ -46,6 +72,12 @@ export default function Home() {
       audioRef.current.volume = audioVolume / 100
     }
   }, [audioVolume])
+  
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = videoVolume / 100
+    }
+  }, [videoVolume])
 
   useEffect(() => {
     if (videoAudioRef.current) {
@@ -158,6 +190,7 @@ export default function Home() {
         image_scale: imageScale,
         media_url: mediaUrl,
         media_type: mediaType,
+        media_scale: mediaScale, 
         video_scale: videoScale,
         show_video_controls: showVideoControls,
         audio_url: audioUrl || null,
@@ -187,62 +220,65 @@ export default function Home() {
       setLoadingProgress(0)
     }
   }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const result = event.target?.result
-        if (typeof result === "string") {
-          setBackgroundImage(result)
-        }
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+  
+    try {
+      const url = await uploadToSupabase(file, "backgrounds")
+      setBackgroundImage(url)
+    } catch (error) {
+      console.error("Upload failed:", error)
+      alert("Failed to upload image.")
     }
   }
 
-  const handleMediaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const MAX_FILE_SIZE = 50 * 1024 * 1024 
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const result = event.target?.result
-        if (typeof result === "string") {
-          setMediaUrl(result)
-        }
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+  
+    if (file.size > MAX_FILE_SIZE) {
+      alert("File is too big! Maximum allowed size is 50MB.")
+      return
+    }
+  
+    try {
+      const compressedBlob = await compressVideo(file)
+      const compressedFile = new File([compressedBlob], file.name, { type: file.type, lastModified: Date.now() })
+      const url = await uploadToSupabase(compressedFile, "media")
+      setMediaUrl(url)
+    } catch (error) {
+      console.error("Upload failed:", error)
+      alert("Failed to upload media.")
     }
   }
+  
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+  
+    try {
+      const url = await uploadToSupabase(file, "audio")
+      setAudioUrl(url)
+    } catch (error) {
+      console.error("Upload failed:", error)
+      alert("Failed to upload audio.")
+    }
+  }
+  const handleVideoAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-  const handleAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const result = event.target?.result
-        if (typeof result === "string") {
-          setAudioUrl(result)
-        }
-      }
-      reader.readAsDataURL(file)
+    try {
+      const url = await uploadToSupabase(file, "audio")
+      setVideoAudioUrl(url)
+    } catch (error) {
+      console.error("Upload failed:", error)
+      alert("Failed to upload video audio.")
     }
   }
-
-  const handleVideoAudioUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const result = event.target?.result
-        if (typeof result === "string") {
-          setVideoAudioUrl(result)
-        }
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+  
 
   const handleHexChange = (value: string) => {
     let normalizedValue = value.trim()
@@ -255,15 +291,9 @@ export default function Home() {
 
   const getBackgroundStyle = () => {
     if (step === "nickname") return { backgroundColor: "#000000" }
-
+  
     if (backgroundType === "color") {
       return { backgroundColor: backgroundColor || "#000000" }
-    } else if (backgroundImage) {
-      return {
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
     }
     return { backgroundColor: "#000000" }
   }
@@ -280,11 +310,15 @@ export default function Home() {
       className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-all duration-700"
       style={getBackgroundStyle()}
     >
-      {/* Image opacity overlay */}
-      {step !== "nickname" && step !== "background" && backgroundType === "image" && backgroundImage && (
-        <div
-          className="absolute inset-0 bg-black transition-opacity duration-700"
-          style={{ opacity: Math.min((100 - imageOpacity) / 100, 0.7) }}
+     {backgroundType === "image" && backgroundImage && (
+        <img
+          src={backgroundImage}
+          alt="Background"
+          className="absolute top-1/2 left-1/2 pointer-events-none transition-transform duration-300"
+          style={{
+            opacity: imageOpacity / 100,
+            transform: `translate(-50%, -50%) scale(${imageScale / 100})`,
+          }}
         />
       )}
 
@@ -310,8 +344,8 @@ export default function Home() {
               alt="Media"
               className="object-contain transition-all duration-500 opacity-30"
               style={{
-                maxWidth: `${imageScale}%`,
-                maxHeight: `${imageScale}%`,
+                maxWidth: `${mediaScale}%`,
+                maxHeight: `${mediaScale}%`,
               }}
             />
           )}
@@ -325,8 +359,26 @@ export default function Home() {
       )}
 
       {/* Hidden audio elements */}
-      {audioUrl && <audio ref={audioRef} src={audioUrl} loop />}
-      {videoAudioUrl && <audio ref={videoAudioRef} src={videoAudioUrl} loop />}
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          loop
+          autoPlay
+          controls
+          className="hidden"
+        />
+      )}
+
+      {videoAudioUrl && (
+        <audio
+          ref={videoAudioRef}
+          src={videoAudioUrl}
+          loop
+          autoPlay
+          controls
+        />
+      )}
 
       {/* Loading overlay */}
       {isCreating && (
@@ -539,6 +591,7 @@ export default function Home() {
                 {mediaUrl ? "Change file" : `Upload ${mediaType === "gif" ? "GIF" : "Video"}`}
               </div>
             </label>
+            <span className="text-white/20 text-xs block">Max file size: 50MB</span>
             {mediaUrl && (
               <>
                 <p className="text-white/70 text-xs font-light tracking-wider animate-in fade-in duration-500">
@@ -546,21 +599,35 @@ export default function Home() {
                 </p>
                 <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
                   <label className="text-white text-xs font-light tracking-[0.2em] uppercase">
-                    {mediaType === "video" ? "Video" : "Image"} Scale: {mediaType === "video" ? videoScale : imageScale}
-                    %
+                    {mediaType === "video" ? "Video" : "Image"} Scale: {mediaType === "video" ? videoScale : mediaScale}%
                   </label>
                   <input
                     type="range"
                     min="10"
                     max="200"
-                    value={mediaType === "video" ? videoScale : imageScale}
+                    value={mediaType === "video" ? videoScale : mediaScale}
                     onChange={(e) =>
                       mediaType === "video"
                         ? setVideoScale(Number(e.target.value))
-                        : setImageScale(Number(e.target.value))
+                        : setMediaScale(Number(e.target.value))
                     }
                     className="w-60 accent-white"
                   />
+                  {mediaType === "video" && mediaUrl && (
+                  <div className="flex flex-col items-center gap-3 mt-4 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">
+                    <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-1">
+                      Original Video Volume: {videoVolume}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={videoVolume}
+                      onChange={(e) => setVideoVolume(Number(e.target.value))}
+                      className="w-full accent-white"
+                    />
+                  </div>
+                )}
                 </div>
               </>
             )}
@@ -608,24 +675,32 @@ export default function Home() {
             </label>
 
             {audioUrl && (
-              <div className="flex flex-col items-center gap-5 bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)] w-80">
-                <p className="text-white/70 text-xs font-light tracking-wider">✓ Audio uploaded</p>
+                <div className="flex flex-col items-center gap-4 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-80">
+                  <p className="text-white/70 text-xs font-light tracking-wider">✓ Audio uploaded</p>
 
-                <div className="w-full">
-                  <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-2">
-                    Volume: {audioVolume}%
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={audioVolume}
-                    onChange={(e) => setAudioVolume(Number(e.target.value))}
-                    className="w-full accent-white"
-                  />
+                  <div className="w-full">
+                    <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-2">
+                      Volume: {audioVolume}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={audioVolume}
+                      onChange={(e) => setAudioVolume(Number(e.target.value))}
+                      className="w-full accent-white"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setAudioUrl("")}
+                    className="mt-2 px-4 py-2 text-xs text-white bg-red-500 rounded-full hover:bg-red-600 transition-all"
+                  >
+                    Remove Audio
+                  </button>
                 </div>
-              </div>
-            )}
+              )}
 
             {mediaType === "video" && (
               <>
@@ -645,7 +720,7 @@ export default function Home() {
                   </span>
                 </label>
 
-                <div className="text-white/40 text-xs font-light tracking-[0.2em] uppercase mt-2">
+                {/* <div className="text-white/40 text-xs font-light tracking-[0.2em] uppercase mt-2">
                   Add background audio (optional)
                 </div>
                 <input
@@ -660,7 +735,7 @@ export default function Home() {
                   <div className="px-10 py-3 rounded-full text-white text-sm border-2 border-white/20 hover:border-white/50 bg-gradient-to-br from-white/5 to-white/0 hover:from-white/10 hover:to-white/0 transition-all duration-500 hover:scale-105 backdrop-blur-md font-light tracking-[0.15em] uppercase">
                     {videoAudioUrl ? "Change Background Audio" : "Add Background Audio"}
                   </div>
-                </label>
+                </label> */}
 
                 {videoAudioUrl && (
                   <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">
@@ -753,7 +828,7 @@ export default function Home() {
               <label className="flex items-center gap-3 cursor-pointer bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300">
                 <input
                   type="checkbox"
-                  checked={showVideoControls}
+                  checked={showVideoControls}  
                   onChange={(e) => setShowVideoControls(e.target.checked)}
                   className="w-4 h-4 accent-emerald-500"
                 />

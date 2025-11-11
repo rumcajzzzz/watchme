@@ -12,6 +12,7 @@ type ScreenData = {
   media_url: string
   media_type: "gif" | "video"
   video_scale: number
+  media_scale: number
   audio_url: string | null
   audio_volume: number
   video_audio_url: string | null

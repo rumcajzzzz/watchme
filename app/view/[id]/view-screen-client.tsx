@@ -27,24 +27,33 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
   const videoAudioRef = useRef<HTMLAudioElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [interactionDone, setInteractionDone] = useState(false)
+  const [showScreen, setShowScreen] = useState(false)
 
+  // ładowanie komponentu
   useEffect(() => {
     setIsLoaded(true)
+  }, [])
 
-    if (audioRef.current && screen.audio_url) {
-      audioRef.current.volume = screen.audio_volume / 100
-      audioRef.current.play().catch((error) => {
-        console.log("[v0] Audio autoplay prevented:", error)
-      })
-    }
+  // obsługa spacji do rozpoczęcia wideo/audio
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !interactionDone) {
+        setInteractionDone(true)
+        // dodajemy mały delay, żeby animacja zdążyła zadziałać
+        setTimeout(() => setShowScreen(true), 100) 
 
-    if (videoAudioRef.current && screen.video_audio_url) {
-      videoAudioRef.current.volume = screen.video_audio_volume / 100
-      videoAudioRef.current.play().catch((error) => {
-        console.log("[v0] Video audio autoplay prevented:", error)
-      })
+        // uruchom wideo i audio po splash
+        setTimeout(() => {
+          if (videoRef.current) videoRef.current.play().catch(console.log)
+          if (audioRef.current) audioRef.current.play().catch(console.log)
+          if (videoAudioRef.current) videoAudioRef.current.play().catch(console.log)
+        }, 200)
+      }
     }
-  }, [screen])
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [interactionDone])
 
   const getBackgroundStyle = () => {
     if (screen.background_type === "color") {
@@ -59,6 +68,23 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     return { backgroundColor: "#000000" }
   }
 
+  // **SPLASH SCREEN** z fade-out
+  if (!interactionDone || !showScreen) {
+    return (
+      <div
+        className={`fixed inset-0 flex items-center justify-center bg-black text-white text-xl font-light tracking-wide transition-opacity duration-700 ${
+          interactionDone ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        <div className="text-center transform transition-transform duration-700 ease-out">
+          <p>w4tchme!</p>
+          <p className="mt-4 text-xs opacity-20">Press SPACE to start</p>
+        </div>
+      </div>
+    )
+  }
+
+  // **GŁÓWNY EKRAN** z fade + scale-in
   return (
     <div
       className={`fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-opacity duration-1000 ${
@@ -68,30 +94,32 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     >
       {/* Image opacity overlay */}
       {screen.background_type === "image" && screen.background_image && (
-        <div className="absolute inset-0 bg-black" style={{ opacity: (100 - screen.image_opacity) / 100 }} />
+        <div
+          className="absolute inset-0 bg-black transition-opacity duration-1000"
+          style={{ opacity: (100 - screen.image_opacity) / 100 }}
+        />
       )}
 
-      {/* Media display */}
+      {/* Media display z delikatnym zoom + fade */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
         {screen.media_type === "video" ? (
           <video
             ref={videoRef}
             src={screen.media_url}
-            autoPlay
             loop
             controls={screen.show_video_controls}
-            muted={screen.mute_original_audio}
-            className="object-contain"
+            muted={!interactionDone ? screen.mute_original_audio : false} // odmute po interakcji
+            className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom"
             style={{
               maxWidth: `${screen.video_scale}%`,
               maxHeight: `${screen.video_scale}%`,
-            }}
-          />
+          }}
+        />
         ) : (
           <img
             src={screen.media_url || "/placeholder.svg"}
             alt="Media"
-            className="object-contain"
+            className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom"
             style={{
               maxWidth: `${screen.image_scale}%`,
               maxHeight: `${screen.image_scale}%`,
@@ -106,8 +134,33 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
         </div>
       )}
 
-      {screen.audio_url && <audio ref={audioRef} src={screen.audio_url} loop />}
-      {screen.video_audio_url && <audio ref={videoAudioRef} src={screen.video_audio_url} loop />}
+      {screen.audio_url && (
+        <audio ref={audioRef} src={screen.audio_url} loop volume={screen.audio_volume / 100} />
+      )}
+      {screen.video_audio_url && (
+        <audio
+          ref={videoAudioRef}
+          src={screen.video_audio_url}
+          loop
+          volume={screen.video_audio_volume / 100}
+        />
+      )}
+
+      <style jsx>{`
+        @keyframes fade-zoom {
+          0% {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-zoom {
+          animation: fade-zoom 0.8s forwards;
+        }
+      `}</style>
     </div>
   )
 }
