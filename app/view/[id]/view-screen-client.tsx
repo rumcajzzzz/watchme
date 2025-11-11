@@ -129,14 +129,17 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             ref={videoRef}
             src={screen.media_url}
             loop
+            playsInline     
             controls={screen.show_video_controls}
             muted={!interactionDone ? screen.mute_original_audio : false}
-            className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom"
+            disablePictureInPicture 
+            controlsList="nodownload nofullscreen noremoteplayback"
+            className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom pointer-events-none"
             style={{
               maxWidth: `${screen.video_scale}%`,
               maxHeight: `${screen.video_scale}%`,
             }}
-          />
+        />
         ) : (
           <img
             src={screen.media_url || "/placeholder.svg"}
