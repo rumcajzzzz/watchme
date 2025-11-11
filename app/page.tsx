@@ -320,10 +320,14 @@ export default function Home() {
         <img
           src={backgroundImage}
           alt="Background"
-          className="absolute top-1/2 left-1/2 pointer-events-none transition-transform duration-300"
+          className="absolute top-1/2 left-1/2 pointer-events-none transition-all duration-300"
           style={{
             opacity: imageOpacity / 100,
-            transform: `translate(-50%, -50%) scale(${imageScale / 100})`,
+            transform: "translate(-50%, -50%)",
+            height: `${imageScale}vh`,
+            width: "auto",
+            maxWidth: "200vw",         
+            objectFit: "contain",  
           }}
         />
       )}
@@ -620,43 +624,47 @@ export default function Home() {
             </label>
             {mediaUrl && (
               <>
-                {mediaUrl && mediaType === "gif" && (
-                  <img
-                    src={mediaUrl}
-                    alt="GIF Preview"
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: `translate(-50%, -50%) scale(${mediaScale / 100})`,
-                      pointerEvents: "none",
-                      zIndex: 0,
-                      opacity: 0.15,
-                      maxWidth: "none",
-                      maxHeight: "none",
-                    }}
-                  />
-                )}
+               {mediaType === "gif" && (
+                <img
+                  src={mediaUrl}
+                  alt="GIF Preview"
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    height: `${mediaScale}vh`,
+                    width: "auto",
+                    maxWidth: "100vw",         
+                    objectFit: "contain",  
+                    pointerEvents: "none",
+                    zIndex: -2,
+                    opacity: 0.8,
+                  }}
+                />
+              )}
 
-                {mediaType === "video" && (
-                  <video
-                    ref={videoRef}
-                    src={mediaUrl}
-                    autoPlay
-                    loop
-                    style={{
-                      position: "absolute",
-                      top: "50%",
-                      left: "50%",
-                      transform: `translate(-50%, -50%) scale(${videoScale / 100})`,
-                      pointerEvents: "none",
-                      zIndex: 0,
-                      opacity: 0.15,
-                      maxWidth: "none",
-                      maxHeight: "none",
-                    }}
-                  />
-                )}
+              {mediaType === "video" && (
+                <video
+                  ref={videoRef}
+                  src={mediaUrl}
+                  autoPlay
+                  loop
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    height: `${videoScale}vh`,
+                    width: "auto",
+                    maxWidth: "100vw",         
+                    objectFit: "contain",  
+                    pointerEvents: "none",
+                    zIndex: 0,
+                    opacity: 0.15,
+                  }}
+                />
+              )}
               </>
             )}
             <span className="text-white/20 text-xs block">Max file size: 50MB</span>
@@ -734,12 +742,14 @@ export default function Home() {
                     position: "absolute",
                     top: "50%",
                     left: "50%",
-                    transform: `translate(-50%, -50%) scale(${mediaScale / 100})`,
+                    transform: "translate(-50%, -50%)",
+                    height: `${mediaScale}vh`,   
+                    width: "auto",
+                    maxWidth: "100vw",           
+                    objectFit: "contain",        
                     pointerEvents: "none",
                     zIndex: 0,
                     opacity: 0.15,
-                    maxWidth: "none",
-                    maxHeight: "none",
                   }}
                 />
               )}
@@ -754,12 +764,14 @@ export default function Home() {
                     position: "absolute",
                     top: "50%",
                     left: "50%",
-                    transform: `translate(-50%, -50%) scale(${videoScale / 100})`,
+                    transform: "translate(-50%, -50%)",
+                    height: `${videoScale}vh`,
+                    width: "auto",
+                    maxWidth: "100vw",        
+                    objectFit: "contain",     
                     pointerEvents: "none",
                     zIndex: 0,
                     opacity: 0.15,
-                    maxWidth: "none",
-                    maxHeight: "none",
                   }}
                 />
               )}

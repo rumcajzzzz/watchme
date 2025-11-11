@@ -36,19 +36,23 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     setIsLoaded(true)
   }, [])
 
-
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = screen.audio_volume / 100
+    const audioEl = audioRef.current
+    if (audioEl) {
+      audioEl.addEventListener("canplay", () => {
+        audioEl.volume = screen.audio_volume / 100
+      })
     }
   }, [screen.audio_volume])
   
   useEffect(() => {
-    if (videoAudioRef.current) {
-      videoAudioRef.current.volume = screen.video_audio_volume / 100
+    const videoAudioEl = videoAudioRef.current
+    if (videoAudioEl) {
+      videoAudioEl.addEventListener("canplay", () => {
+        videoAudioEl.volume = screen.video_audio_volume / 100
+      })
     }
   }, [screen.video_audio_volume])
-
   useEffect(() => {
     const checkOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight)
     window.addEventListener("resize", checkOrientation)
@@ -62,9 +66,17 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       setTimeout(() => setShowScreen(true), 100)
 
       setTimeout(() => {
-        if (videoRef.current) videoRef.current.play().catch(console.log)
-        if (audioRef.current) audioRef.current.play().catch(console.log)
-        if (videoAudioRef.current) videoAudioRef.current.play().catch(console.log)
+        if (audioRef.current) {
+          audioRef.current.volume = screen.audio_volume / 100
+          audioRef.current.play().catch(console.log)
+        }
+        if (videoAudioRef.current) {
+          videoAudioRef.current.volume = screen.video_audio_volume / 100
+          videoAudioRef.current.play().catch(console.log)
+        }
+        if (videoRef.current) {
+          videoRef.current.play().catch(console.log)
+        }
       }, 200)
     }
   }
@@ -76,6 +88,7 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [interactionDone])
+
 
   const getBackgroundStyle = () => {
     if (screen.background_type === "color") {
@@ -144,10 +157,15 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             controlsList="nodownload nofullscreen noremoteplayback"
             className="transition-transform duration-1000 ease-out pointer-events-none opacity-100"
             style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              height: `${screen.video_scale}vh`,
               width: "auto",
-              height: "auto",
+              maxWidth: "100vw",
+              objectFit: "contain",
+              pointerEvents: "none",
             }}
           />
         ) : (
@@ -156,10 +174,15 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             alt="Media"
             className="transition-transform duration-1000 ease-out pointer-events-none opacity-100"
             style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              height: `${screen.image_scale}vh`,
               width: "auto",
-              height: "auto",
+              maxWidth: "100vw",
+              objectFit: "contain",
+              pointerEvents: "none",
             }}
           />
         )}
