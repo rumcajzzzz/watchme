@@ -23,7 +23,7 @@ export default function CopyLinkButton({ screenId }: CopyLinkButtonProps) {
   return (
     <button
     type="button"
-    onClick={handleClick} // ← use your handleClick here
+    onClick={handleClick}
     className={`px-4 py-2 my-3 w-32 rounded-full text-black backdrop-blur-sm transition-all duration-1000 ease-out flex items-center justify-center mx-auto
       ${copied ? "bg-green-400 hover:bg-green-500" : "bg-white/20 hover:bg-white/40"}`}
   >

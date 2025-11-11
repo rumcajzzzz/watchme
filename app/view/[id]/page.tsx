@@ -28,7 +28,6 @@ export default async function ViewScreen({
   const { id } = await params
   const supabase = await createClient()
 
-  // Fetch screen data from Supabase
   const { data: screen, error } = await supabase.from("screens").select("*").eq("id", id).single<ScreenData>()
 
   if (error || !screen) {

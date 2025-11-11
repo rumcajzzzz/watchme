@@ -49,7 +49,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     }
   }, [screen.video_audio_volume])
 
-  // wykrywanie orientacji ekranu
   useEffect(() => {
     const checkOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight)
     window.addEventListener("resize", checkOrientation)
@@ -57,7 +56,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     return () => window.removeEventListener("resize", checkOrientation)
   }, [])
 
-  // funkcja startu interakcji - wspólna dla spacji i kliknięcia
   const startInteraction = () => {
     if (!interactionDone) {
       setInteractionDone(true)
@@ -71,7 +69,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     }
   }
 
-  // obsługa spacji
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space") startInteraction()
@@ -87,7 +84,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     return { backgroundColor: "#000000" }
   }
 
-  // wymuszenie landscape
   if (!isLandscape) {
     return (
       <div className={`fixed inset-0 flex items-center justify-center bg-black text-white text-center p-4 transition-opacity duration-500 ${
@@ -98,11 +94,10 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     )
   }
 
-  // splash screen przed interakcją
   if (!interactionDone || !showScreen) {
     return (
       <div
-        onClick={startInteraction} // kliknięcie działa na telefonach
+        onClick={startInteraction} 
         className={`fixed inset-0 flex items-center justify-center bg-black text-white text-xl font-light tracking-wide transition-opacity duration-700 cursor-pointer ${
           interactionDone ? "opacity-0" : "opacity-100"
         }`}
@@ -115,8 +110,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       </div>
     )
   }
-
-  // główny ekran
   return (
     <div
       className={`fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-opacity duration-1000 ${
