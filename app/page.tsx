@@ -329,7 +329,7 @@ export default function Home() {
       )}
 
       {/* Media display */}
-      {(step === "audio" || step === "settings") && mediaUrl && (
+      {/* {(step === "audio" || step === "settings") && mediaUrl && (
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           {mediaType === "video" ? (
             <video
@@ -350,7 +350,7 @@ export default function Home() {
             />
           )}
         </div>
-      )}
+      )} */}
 
       {nickname && step != "nickname" && (
         <div className="absolute top-15 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase">
@@ -644,16 +644,16 @@ export default function Home() {
                     src={mediaUrl}
                     autoPlay
                     loop
-                    muted
                     style={{
                       position: "absolute",
                       top: "50%",
                       left: "50%",
                       transform: `translate(-50%, -50%) scale(${videoScale / 100})`,
-                      opacity: 0.15,
                       pointerEvents: "none",
                       zIndex: 0,
-                      filter: "blur(2px)",
+                      opacity: 0.15,
+                      maxWidth: "none",
+                      maxHeight: "none",
                     }}
                   />
                 )}
@@ -737,7 +737,9 @@ export default function Home() {
                     transform: `translate(-50%, -50%) scale(${mediaScale / 100})`,
                     pointerEvents: "none",
                     zIndex: 0,
-                    opacity: 0.15, 
+                    opacity: 0.15,
+                    maxWidth: "none",
+                    maxHeight: "none",
                   }}
                 />
               )}
@@ -748,7 +750,6 @@ export default function Home() {
                   src={mediaUrl}
                   autoPlay
                   loop
-                  muted
                   style={{
                     position: "absolute",
                     top: "50%",
@@ -757,6 +758,8 @@ export default function Home() {
                     pointerEvents: "none",
                     zIndex: 0,
                     opacity: 0.15,
+                    maxWidth: "none",
+                    maxHeight: "none",
                   }}
                 />
               )}

@@ -124,7 +124,7 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       )}
 
       <div className="absolute inset-0 flex items-center justify-center z-10">
-        {screen.media_type === "video" ? (
+      {screen.media_type === "video" ? (
           <video
             ref={videoRef}
             src={screen.media_url}
@@ -134,20 +134,22 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             muted={!interactionDone ? screen.mute_original_audio : false}
             disablePictureInPicture 
             controlsList="nodownload nofullscreen noremoteplayback"
-            className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom pointer-events-none"
+            className="object-contain transition-transform duration-1000 ease-out pointer-events-none opacity-100"
             style={{
-              maxWidth: `${screen.video_scale}%`,
-              maxHeight: `${screen.video_scale}%`,
+              transform: `scale(${screen.video_scale / 100})`,
+              maxWidth: "none",
+              maxHeight: "none",
             }}
-        />
+          />
         ) : (
           <img
             src={screen.media_url || "/placeholder.svg"}
             alt="Media"
-            className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom"
+            className="object-contain transition-transform duration-1000 ease-out pointer-events-none opacity-100"
             style={{
-              maxWidth: `${screen.image_scale}%`,
-              maxHeight: `${screen.image_scale}%`,
+              transform: `scale(${screen.image_scale / 100})`,
+              maxWidth: "none",
+              maxHeight: "none",
             }}
           />
         )}
