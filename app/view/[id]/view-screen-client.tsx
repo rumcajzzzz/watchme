@@ -13,10 +13,12 @@ type ScreenData = {
   media_url: string
   media_type: "gif" | "video"
   video_scale: number
+  show_video_controls: boolean
   audio_url: string | null
   audio_volume: number
   video_audio_url: string | null
   video_audio_volume: number
+  mute_original_audio: boolean
   expires_at: string | null
 }
 
@@ -77,6 +79,8 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             src={screen.media_url}
             autoPlay
             loop
+            controls={screen.show_video_controls}
+            muted={screen.mute_original_audio}
             className="object-contain"
             style={{
               maxWidth: `${screen.video_scale}%`,
@@ -97,7 +101,7 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       </div>
 
       {screen.nickname && (
-        <div className="absolute top-8 left-8 z-20 text-white text-2xl font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
+        <div className="absolute top-6 left-6 z-20 text-white text-lg font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
           {screen.nickname}
         </div>
       )}
