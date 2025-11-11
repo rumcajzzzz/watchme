@@ -1,5 +1,6 @@
 "use client"
 
+import CopyLinkButton from "@/components/copyLinkButton"
 import { useEffect, useRef, useState } from "react"
 
 type ScreenData = {
@@ -34,6 +35,19 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
   useEffect(() => {
     setIsLoaded(true)
   }, [])
+
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = screen.audio_volume / 100
+    }
+  }, [screen.audio_volume])
+  
+  useEffect(() => {
+    if (videoAudioRef.current) {
+      videoAudioRef.current.volume = screen.video_audio_volume / 100
+    }
+  }, [screen.video_audio_volume])
 
   // wykrywanie orientacji ekranu
   useEffect(() => {
@@ -93,9 +107,10 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
           interactionDone ? "opacity-0" : "opacity-100"
         }`}
       >
-        <div className="text-center transform transition-transform duration-700 ease-out">
+        <div className="text-center transform transition-transform duration-700 ease-out flex flex-col justify-center align-middle">
           <p>w4tchme!</p>
-          <p className="mt-4 text-xs opacity-20">Press SPACE or TAP to start</p>
+          <p className="mt-4 text-s opacity-20">Press SPACE or TAP to start</p>
+          <CopyLinkButton screenId={screen.id} />
         </div>
       </div>
     )
@@ -124,56 +139,53 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       )}
 
       <div className="absolute inset-0 flex items-center justify-center z-10">
-      {screen.media_type === "video" ? (
+        {screen.media_type === "video" ? (
           <video
             ref={videoRef}
             src={screen.media_url}
             loop
-            playsInline     
+            playsInline
             controls={screen.show_video_controls}
             muted={!interactionDone ? screen.mute_original_audio : false}
-            disablePictureInPicture 
+            disablePictureInPicture
             controlsList="nodownload nofullscreen noremoteplayback"
-            className="object-contain transition-transform duration-1000 ease-out pointer-events-none opacity-100"
+            className="transition-transform duration-1000 ease-out pointer-events-none opacity-100"
             style={{
-              transform: `scale(${screen.video_scale / 100})`,
-              maxWidth: "none",
-              maxHeight: "none",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "auto",
+              height: "auto",
             }}
           />
         ) : (
           <img
             src={screen.media_url || "/placeholder.svg"}
             alt="Media"
-            className="object-contain transition-transform duration-1000 ease-out pointer-events-none opacity-100"
+            className="transition-transform duration-1000 ease-out pointer-events-none opacity-100"
             style={{
-              transform: `scale(${screen.image_scale / 100})`,
-              maxWidth: "none",
-              maxHeight: "none",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "auto",
+              height: "auto",
             }}
           />
         )}
       </div>
 
-      <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20">
+      <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20 z-99999">
         w4tchme!
       </div>
       {screen.nickname && (
-        <div className="absolute top-12 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
+        <div className="absolute top-12 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none z-9999">
           {screen.nickname}
         </div>
       )}
 
       {screen.audio_url && (
-        <audio ref={audioRef} src={screen.audio_url} loop volume={screen.audio_volume / 100} />
+        <audio ref={audioRef} src={screen.audio_url} loop />
       )}
       {screen.video_audio_url && (
-        <audio
-          ref={videoAudioRef}
-          src={screen.video_audio_url}
-          loop
-          volume={screen.video_audio_volume / 100}
-        />
+        <audio ref={videoAudioRef} src={screen.video_audio_url} loop />
       )}
 
       <style jsx>{`

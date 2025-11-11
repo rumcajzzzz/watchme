@@ -446,7 +446,7 @@ export default function Home() {
           }`}
         >
           <h2 className="text-white text-2xl sm:text-3xl font-extralight tracking-[0.2em] uppercase mb-2 sm:mb-3 text-center">
-             ground?
+             background?
           </h2>
 
           {/* Color / Image Switch */}
@@ -773,7 +773,7 @@ export default function Home() {
           <div className="flex flex-col items-center gap-5 mt-3">
             <input
               type="file"
-              accept="audio/*"
+               accept=".mp3, .wav, .m4a, .ogg, .mp4"
               onChange={handleAudioUpload}
               className="hidden"
               id="audio-upload"
