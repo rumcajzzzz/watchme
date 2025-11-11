@@ -29,27 +29,38 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [interactionDone, setInteractionDone] = useState(false)
   const [showScreen, setShowScreen] = useState(false)
+  const [isLandscape, setIsLandscape] = useState(true)
 
-  // ładowanie komponentu
   useEffect(() => {
     setIsLoaded(true)
   }, [])
 
-  // obsługa spacji do rozpoczęcia wideo/audio
+  // wykrywanie orientacji ekranu
+  useEffect(() => {
+    const checkOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight)
+    window.addEventListener("resize", checkOrientation)
+    checkOrientation()
+    return () => window.removeEventListener("resize", checkOrientation)
+  }, [])
+
+  // funkcja startu interakcji - wspólna dla spacji i kliknięcia
+  const startInteraction = () => {
+    if (!interactionDone) {
+      setInteractionDone(true)
+      setTimeout(() => setShowScreen(true), 100)
+
+      setTimeout(() => {
+        if (videoRef.current) videoRef.current.play().catch(console.log)
+        if (audioRef.current) audioRef.current.play().catch(console.log)
+        if (videoAudioRef.current) videoAudioRef.current.play().catch(console.log)
+      }, 200)
+    }
+  }
+
+  // obsługa spacji
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "Space" && !interactionDone) {
-        setInteractionDone(true)
-        // dodajemy mały delay, żeby animacja zdążyła zadziałać
-        setTimeout(() => setShowScreen(true), 100) 
-
-        // uruchom wideo i audio po splash
-        setTimeout(() => {
-          if (videoRef.current) videoRef.current.play().catch(console.log)
-          if (audioRef.current) audioRef.current.play().catch(console.log)
-          if (videoAudioRef.current) videoAudioRef.current.play().catch(console.log)
-        }, 200)
-      }
+      if (e.code === "Space") startInteraction()
     }
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
@@ -59,26 +70,38 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     if (screen.background_type === "color") {
       return { backgroundColor: screen.background_color || "#000000" }
     }
-    return { backgroundColor: "#000000" } // tło defaultowe
+    return { backgroundColor: "#000000" }
   }
 
-  // **SPLASH SCREEN** z fade-out
+  // wymuszenie landscape
+  if (!isLandscape) {
+    return (
+      <div className={`fixed inset-0 flex items-center justify-center bg-black text-white text-center p-4 transition-opacity duration-500 ${
+          isLandscape ? "opacity-0 pointer-events-none" : "opacity-100"
+        }`}>
+        <p>Rotate your phone to landscape to continue.</p>
+      </div>
+    )
+  }
+
+  // splash screen przed interakcją
   if (!interactionDone || !showScreen) {
     return (
       <div
-        className={`fixed inset-0 flex items-center justify-center bg-black text-white text-xl font-light tracking-wide transition-opacity duration-700 ${
+        onClick={startInteraction} // kliknięcie działa na telefonach
+        className={`fixed inset-0 flex items-center justify-center bg-black text-white text-xl font-light tracking-wide transition-opacity duration-700 cursor-pointer ${
           interactionDone ? "opacity-0" : "opacity-100"
         }`}
       >
         <div className="text-center transform transition-transform duration-700 ease-out">
           <p>w4tchme!</p>
-          <p className="mt-4 text-xs opacity-20">Press SPACE to start</p>
+          <p className="mt-4 text-xs opacity-20">Press SPACE or TAP to start</p>
         </div>
       </div>
     )
   }
 
-  // **GŁÓWNY EKRAN** z fade + scale-in
+  // główny ekran
   return (
     <div
       className={`fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-opacity duration-1000 ${
@@ -86,7 +109,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       }`}
       style={getBackgroundStyle()}
     >
-      {/* Image opacity overlay */}
       {screen.background_type === "image" && screen.background_image && (
         <img
           src={screen.background_image}
@@ -101,7 +123,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
         />
       )}
 
-      {/* Media display z delikatnym zoom + fade */}
       <div className="absolute inset-0 flex items-center justify-center z-10">
         {screen.media_type === "video" ? (
           <video
@@ -109,13 +130,13 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             src={screen.media_url}
             loop
             controls={screen.show_video_controls}
-            muted={!interactionDone ? screen.mute_original_audio : false} // odmute po interakcji
+            muted={!interactionDone ? screen.mute_original_audio : false}
             className="object-contain transition-transform duration-1000 ease-out transform scale-95 opacity-0 animate-fade-zoom"
             style={{
               maxWidth: `${screen.video_scale}%`,
               maxHeight: `${screen.video_scale}%`,
-          }}
-        />
+            }}
+          />
         ) : (
           <img
             src={screen.media_url || "/placeholder.svg"}
@@ -129,12 +150,9 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
         )}
       </div>
 
-      {/* w4tchme label */}
       <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20">
         w4tchme!
       </div>
-
-      {/* nickname pod w4tchme */}
       {screen.nickname && (
         <div className="absolute top-12 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
           {screen.nickname}
@@ -155,18 +173,10 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
 
       <style jsx>{`
         @keyframes fade-zoom {
-          0% {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
+          0% { opacity: 0; transform: scale(0.95); }
+          100% { opacity: 1; transform: scale(1); }
         }
-        .animate-fade-zoom {
-          animation: fade-zoom 0.8s forwards;
-        }
+        .animate-fade-zoom { animation: fade-zoom 0.8s forwards; }
       `}</style>
     </div>
   )

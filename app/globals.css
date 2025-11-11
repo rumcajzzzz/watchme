@@ -124,3 +124,20 @@
   }
 }
 
+@media (orientation: portrait) {
+  body > #landscape-warning {
+    display: flex; 
+  }
+  body > #main-content {
+    display: none;
+  }
+}
+
+@media (orientation: landscape) {
+  body > #landscape-warning {
+    display: none;
+  }
+  body > #main-content {
+    display: block; 
+  }
+}
