@@ -17,10 +17,11 @@ export default function AdminPage() {
 
   const handleAction = async (action: "clearBuckets" | "clearTables") => {
     try {
+      const adminSecret = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "";
       const res = await fetch(`/api/admin/${action}`, {
         method: "POST",
         headers: {
-          "x-admin-secret": process.env.NEXT_PUBLIC_ADMIN_PASSWORD
+          "x-admin-secret": adminSecret
         }
       });
       const data = await res.json();
@@ -29,6 +30,7 @@ export default function AdminPage() {
       setMessage("Error calling API");
     }
   };
+  
 
   if (!isAuthenticated) {
     return (

@@ -1,5 +1,5 @@
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { NextRequest } from "next/server";
-import { createAdminClient } from "@/lib/supabase/client";
 
 const supabaseAdmin = createAdminClient();
 
@@ -13,25 +13,18 @@ async function clearBucket(bucketName: string, path = "") {
     throw error;
   }
 
-  console.log(`Found items in bucket "${bucketName}" at path "${path}":`, items);
-
   if (!items || items.length === 0) return;
 
   for (const item of items) {
     const fullPath = path ? `${path}/${item.name}` : item.name;
 
-    if (item.type === "folder") {
-      console.log(`Entering folder: ${fullPath}`);
-      // rekurencyjnie czyść folder
-      await clearBucket(bucketName, fullPath);
-    } else if (item.type === "file") {
-      console.log(`Removing from bucket "${bucketName}": [ '${fullPath}' ]`);
-      const { data, error: removeError } = await supabaseAdmin.storage.from(bucketName).remove([fullPath]);
-      if (removeError) {
-        console.error(`Failed to remove file "${fullPath}" from bucket "${bucketName}":`, removeError);
-      } else {
-        console.log(`Removed files:`, data);
-      }
+    // Usuń plik (foldery nie są osobnymi obiektami)
+    console.log(`Removing from bucket "${bucketName}": [ '${fullPath}' ]`);
+    const { data, error: removeError } = await supabaseAdmin.storage.from(bucketName).remove([fullPath]);
+    if (removeError) {
+      console.error(`Failed to remove file "${fullPath}" from bucket "${bucketName}":`, removeError);
+    } else {
+      console.log(`Removed files:`, data);
     }
   }
 }
