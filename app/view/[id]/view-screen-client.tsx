@@ -2,6 +2,7 @@
 
 import CopyLinkButton from "@/components/copyLinkButton"
 import { useEffect, useRef, useState } from "react"
+import tinycolor from "tinycolor2"
 
 type ScreenData = {
   id: string
@@ -13,6 +14,7 @@ type ScreenData = {
   image_scale: number
   media_url: string
   media_type: "gif" | "video"
+  media_scale: number
   video_scale: number
   show_video_controls: boolean
   audio_url: string | null
@@ -116,7 +118,6 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
         }`}
       >
         <div className="text-center transform transition-transform duration-700 ease-out flex flex-col justify-center align-middle">
-          <p>w4tchme!</p>
           <p className="mt-4 text-s opacity-20">Press SPACE or TAP to start</p>
           <CopyLinkButton screenId={screen.id} />
         </div>
@@ -178,7 +179,7 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -50%)",
-              height: `${screen.image_scale}vh`,
+              height: `${screen.media_scale}vh`,
               width: "auto",
               maxWidth: "100vw",
               objectFit: "contain",
@@ -188,11 +189,14 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
         )}
       </div>
 
-      <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20 z-99999">
-        w4tchme!
-      </div>
       {screen.nickname && (
-        <div className="absolute top-12 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none z-9999">
+        <div
+          className={`absolute top-20 w-full text-center text-3xl font-bold uppercase opacity-50 pointer-events-none z-9999 ${
+            screen.background_type === "color"
+              ? (tinycolor(screen.background_color || "#000").isLight() ? "text-primary" : "text-secondary")
+              : "text-primary"
+          }`}
+        >
           {screen.nickname}
         </div>
       )}

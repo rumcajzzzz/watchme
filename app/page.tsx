@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
+import tinycolor from "tinycolor2"
 
 const supabase = createClient()
 
@@ -66,25 +67,21 @@ export default function Home() {
   useEffect(() => {
     setTimeout(() => setShowContent(true), 100)
   }, [])
-
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = audioVolume / 100
     }
   }, [audioVolume])
-  
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.volume = videoVolume / 100
     }
   }, [videoVolume])
-
   useEffect(() => {
     if (videoAudioRef.current) {
       videoAudioRef.current.volume = videoAudioVolume / 100
     }
   }, [videoAudioVolume])
-
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = muteOriginalAudio
@@ -98,13 +95,11 @@ export default function Home() {
       setShowContent(true)
     }, 500)
   }
-
   const handleNicknameKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && nickname.trim() !== "") {
       handleNicknameConfirm()
     }
   }
-
   const handleBackgroundConfirm = () => {
     setShowContent(false)
     setTimeout(() => {
@@ -112,19 +107,16 @@ export default function Home() {
       setShowContent(true)
     }, 500)
   }
-
   const handleHexKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && hasBackgroundSelection) {
       handleBackgroundConfirm()
     }
   }
-
   const handleMediaKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && hasMediaSelection) {
       handleMediaConfirm()
     }
   }
-
   const handleMediaConfirm = () => {
     setShowContent(false)
     setTimeout(() => {
@@ -132,13 +124,11 @@ export default function Home() {
       setShowContent(true)
     }, 500)
   }
-
   const handleAudioKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleAudioConfirm()
     }
   }
-
   const handleAudioConfirm = () => {
     setShowContent(false)
     setTimeout(() => {
@@ -146,13 +136,11 @@ export default function Home() {
       setShowContent(true)
     }, 500)
   }
-
   const handleSettingsKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !isCreating) {
       handleFinalConfirm()
     }
   }
-
   const compressVideo = async (file: File): Promise<Blob> => {
     // Check if file size is over 15MB
     const maxSize = 15 * 1024 * 1024 // 15MB in bytes
@@ -165,7 +153,6 @@ export default function Home() {
     console.log("[v0] Video file is over 15MB, compression recommended")
     return file
   }
-
   const handleFinalConfirm = async () => {
     setIsCreating(true)
     setLoadingProgress(0)
@@ -221,6 +208,7 @@ export default function Home() {
     }
   }
   
+  const MAX_FILE_SIZE = 45 * 1024 * 1024 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -233,8 +221,6 @@ export default function Home() {
       alert("Failed to upload image.")
     }
   }
-
-  const MAX_FILE_SIZE = 50 * 1024 * 1024 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -254,7 +240,6 @@ export default function Home() {
       alert("Failed to upload media.")
     }
   }
-  
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -267,20 +252,6 @@ export default function Home() {
       alert("Failed to upload audio.")
     }
   }
-  const handleVideoAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    try {
-      const url = await uploadToSupabase(file, "audio")
-      setVideoAudioUrl(url)
-    } catch (error) {
-      console.error("Upload failed:", error)
-      alert("Failed to upload video audio.")
-    }
-  }
-  
-
   const handleHexChange = (value: string) => {
     let normalizedValue = value.trim()
     // If user types without #, add it
@@ -289,7 +260,6 @@ export default function Home() {
     }
     setBackgroundColor(normalizedValue || "#000000")
   }
-
   const getBackgroundStyle = () => {
     if (step === "nickname") return { backgroundColor: "#000000" }
   
@@ -305,650 +275,704 @@ export default function Home() {
 
   const hasMediaSelection = (mediaUrl || "").trim() !== ""
   const hasNickname = nickname.trim() !== ""
+  const isLightBackground = tinycolor(backgroundColor).isLight();
 
   return (
     <div
       className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-all duration-700"
       style={getBackgroundStyle()}
     >
-          
-    <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20">
-      w4tchme!
-    </div>
+      {backgroundType === "image" && backgroundImage && (
+          <img
+            src={backgroundImage}
+            alt="Background"
+            className="absolute top-1/2 left-1/2 pointer-events-none transition-all duration-300"
+            style={{
+              opacity: imageOpacity / 100,
+              transform: "translate(-50%, -50%)",
+              height: `${imageScale}vh`,
+              width: "auto",
+              maxWidth: "200vw",         
+              objectFit: "contain",  
+            }}
+          />
+        )}
 
-     {backgroundType === "image" && backgroundImage && (
-        <img
-          src={backgroundImage}
-          alt="Background"
-          className="absolute top-1/2 left-1/2 pointer-events-none transition-all duration-300"
-          style={{
-            opacity: imageOpacity / 100,
-            transform: "translate(-50%, -50%)",
-            height: `${imageScale}vh`,
-            width: "auto",
-            maxWidth: "200vw",         
-            objectFit: "contain",  
-          }}
-        />
-      )}
-
-      {/* Media display */}
-      {/* {(step === "audio" || step === "settings") && mediaUrl && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-          {mediaType === "video" ? (
-            <video
-              src={mediaUrl}
-              playsInline
-              controls={false}
-              disablePictureInPicture
-              controlsList="nodownload nofullscreen noremoteplayback"
-              className="pointer-events-none select-none object-contain max-h-[80vh]"
-              tabIndex={-1}
-            />
-          ) : (
-            <img
-              src={mediaUrl}
-              alt=""
-              draggable={false}
-              className="pointer-events-none select-none object-contain max-h-[80vh]"
-            />
-          )}
-        </div>
-      )} */}
-
-      {nickname && step != "nickname" && (
-        <div className="absolute top-15 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase">
-          {nickname}
-        </div>
-      )}
-
-      {/* Hidden audio elements */}
-      {audioUrl && (
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          loop
-          autoPlay
-          controls
-          className="hidden"
-        />
-      )}
-
-      {videoAudioUrl && (
-        <audio
-          ref={videoAudioRef}
-          src={videoAudioUrl}
-          loop
-          autoPlay
-          controls
-        />
-      )}
-
-      {/* LOADING OVERLAY */}
-      {isCreating && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-6">
-          <div className="text-white text-2xl font-extralight tracking-[0.3em] uppercase animate-pulse">
-            Creating your link...
+        {/* Media display */}
+        {/* {(step === "audio" || step === "settings") && mediaUrl && (
+          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            {mediaType === "video" ? (
+              <video
+                src={mediaUrl}
+                playsInline
+                controls={false}
+                disablePictureInPicture
+                controlsList="nodownload nofullscreen noremoteplayback"
+                className="pointer-events-none select-none object-contain max-h-[80vh]"
+                tabIndex={-1}
+              />
+            ) : (
+              <img
+                src={mediaUrl}
+                alt=""
+                draggable={false}
+                className="pointer-events-none select-none object-contain max-h-[80vh]"
+              />
+            )}
           </div>
-          <div className="w-64 h-2 bg-white/10 rounded-full overflow-hidden border border-white/20">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 transition-all duration-300 ease-out rounded-full shadow-[0_0_20px_rgba(16,185,129,0.6)]"
-              style={{ width: `${loadingProgress}%` }}
-            />
+        )} */}
+
+        {/* {nickname && step != "nickname" && (
+          <div className="absolute top-15 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase">
+            {nickname}
           </div>
-          <div className="text-white/60 text-base font-light tracking-wider">{loadingProgress}%</div>
-        </div>
-      )}
-  
-      {/* NICKNAME STEP */}
-      {step === "nickname" && (
-        <div
-          className={`transition-all duration-1000 flex flex-col items-center ${
-            showContent ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-6"
-          }`}
-        >
-          <h2 className="text-white text-2xl sm:text-3xl font-extralight tracking-[0.2em] uppercase mb-3 text-center">
-            enter nickname
-          </h2>
+        )} */}
 
-          <div className="flex flex-col items-center gap-6 w-full px-6">
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              onKeyPress={handleNicknameKeyPress}
-              placeholder="Your name..."
-              className="bg-white/10 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full text-center backdrop-blur-md border border-white/30 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/20 transition-all duration-500 text-lg sm:text-xl tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)] placeholder:text-white/30 w-full max-w-[340px]"
-              autoFocus
-            />
+        {/* Hidden audio elements */}
+        {audioUrl && (
+          <audio
+            ref={audioRef}
+            src={audioUrl}
+            loop
+            autoPlay
+            controls
+            className="hidden"
+          />
+        )}
 
-            {/* animowany przycisk, który pojawia się pod inputem, nie zmieniając layoutu */}
-            <div
-              className={`transition-all duration-700 ease-out ${
-                hasNickname
-                  ? "opacity-100 translate-y-0 pointer-events-auto"
-                  : "opacity-0 translate-y-4 pointer-events-none"
-              }`}
-            >
+        {videoAudioUrl && (
+          <audio
+            ref={videoAudioRef}
+            src={videoAudioUrl}
+            loop
+            autoPlay
+            controls
+          />
+        )}
+
+        {/* LOADING OVERLAY */}
+        {isCreating && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col items-center justify-center gap-6">
+            <div className="text-white text-2xl font-extralight tracking-[0.3em] uppercase animate-pulse">
+              Creating your link...
+            </div>
+            <div className="w-64 h-2 bg-white/10 rounded-full overflow-hidden border border-white/20">
+              <div
+                className="h-full bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 transition-all duration-300 ease-out rounded-full shadow-[0_0_20px_rgba(16,185,129,0.6)]"
+                style={{ width: `${loadingProgress}%` }}
+              />
+            </div>
+            <div className="text-white/60 text-base font-light tracking-wider">{loadingProgress}%</div>
+          </div>
+        )}
+    
+        {/* NICKNAME STEP */}
+        {step === "nickname" && (
+          <div
+            className={`transition-all duration-1000 flex flex-col items-center ${
+              showContent ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 translate-y-6"
+            }`}
+          >
+            <h2 className="text-white text-2xl sm:text-3xl font-extralight tracking-[0.2em] uppercase mb-3 text-center">
+              enter nickname
+            </h2>
+
+            <div className="flex flex-col items-center gap-6 w-full px-6">
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                onKeyPress={handleNicknameKeyPress}
+                placeholder="Your name..."
+                className="bg-white/10 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full text-center backdrop-blur-md border border-white/30 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/20 transition-all duration-500 text-lg sm:text-xl tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)] placeholder:text-white/30 w-full max-w-[340px]"
+                autoFocus
+              />
+
+              {/* animowany przycisk, który pojawia się pod inputem, nie zmieniając layoutu */}
+              <div
+                className={`transition-all duration-700 ease-out ${
+                  hasNickname
+                    ? "opacity-100 translate-y-0 pointer-events-auto"
+                    : "opacity-0 translate-y-4 pointer-events-none"
+                }`}
+              >
+                <button
+                  onClick={handleNicknameConfirm}
+                  className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-12 sm:px-16 py-4 sm:py-5 text-base sm:text-lg rounded-full mt-4 font-light tracking-[0.2em] uppercase shadow-[0_0_40px_rgba(16,185,129,0.4)] hover:shadow-[0_0_70px_rgba(16,185,129,0.6)] hover:scale-105 transition-all duration-500"
+                >
+                  <span className="relative z-10">Next →</span>
+                  <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* BACKGROUND STEP */}
+        {step === "background" && (
+          <div
+            className={`flex flex-col items-center gap-5 sm:gap-6 z-20 ${
+              showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
+            <h1 className={`text-2xl sm:text-3xl font-extralight tracking-[0.2em] uppercase mb-2 sm:mb-3 text-center transition-all duration-1000 ${
+              isLightBackground ? "text-primary" : "text-secondary"
+            }`}>
+              background?
+            </h1>
+
+            {/* Color / Image Switch */}
+            <div className="flex gap-2 p-1.5 bg-white/5 rounded-full backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
               <button
-                onClick={handleNicknameConfirm}
-                className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-12 sm:px-16 py-4 sm:py-5 text-base sm:text-lg rounded-full mt-4 font-light tracking-[0.2em] uppercase shadow-[0_0_40px_rgba(16,185,129,0.4)] hover:shadow-[0_0_70px_rgba(16,185,129,0.6)] hover:scale-105 transition-all duration-500"
+                type="button"
+                onClick={() => setBackgroundType("color")}
+                className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-1000 ${
+              isLightBackground ? "text-primary" : "text-secondary"
+            }`}>
+                Color
+              </button>
+              <button
+                type="button"
+                onClick={() => setBackgroundType("image")}
+                className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs $transition-all duration-1000 ${
+                  isLightBackground ? "text-primary" : "text-secondary"
+            }`}>
+                Image
+              </button>
+            </div>
+
+            {/* Background Options */}
+            <div className="flex flex-col items-center gap-5 mt-3 w-full px-4 transition-all duration-500">
+              {backgroundType === "color" ? (
+                <>
+                  <div
+                    onClick={() => colorInputRef.current?.click()}
+                    className="w-36 sm:w-48 h-36 sm:h-48 rounded-2xl shadow-[0_0_40px_rgba(128,128,128,0.5)] transition-all duration-500 cursor-pointer hover:scale-105"
+                    style={{ backgroundColor: backgroundColor || "#000000" }}
+                  />
+                  <input
+                    type="text"
+                    value={backgroundColor || "#000000"}
+                    onChange={(e) => handleHexChange(e.target.value)}
+                    onKeyPress={handleHexKeyPress}
+                    className={`bg-white/10 px-4 sm:px-6 py-2 sm:py-3 rounded-full text-center backdrop-blur-md border border-white/30 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/20 transition-colors duration-500 font-mono text-sm sm:text-base tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)] w-40 sm:w-48 ${
+                      isLightBackground ? "text-primary" : "text-secondary"
+                    }`}
+                    placeholder="#000000"
+                  />
+                  <input
+                    ref={colorInputRef}
+                    type="color"
+                    value={backgroundColor || "#000000"}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="opacity-0 w-0 h-0 absolute"
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                    key={backgroundImage || "image-input"}
+                  />
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="px-8 sm:px-12 py-4 sm:py-5 rounded-full text-white text-sm sm:text-base border-2 border-white/30 hover:border-white/70 bg-linear-to-br from-white/10 to-white/0 hover:from-white/15 hover:to-white/5 transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] backdrop-blur-md font-light tracking-[0.15em] uppercase text-center">
+                      Upload Image
+                    </div>
+                  </label>
+
+                  {backgroundImage && (
+                  <div
+                      className={`flex flex-col items-center gap-3 p-5 sm:p-8 rounded-2xl shadow-[0_8px_48px_rgba(0,0,0,0.4)] w-[90%] max-w-[320px] sm:max-w-none
+                        ${isLightBackground ? 'bg-white/30 border-black/10' : 'bg-black/80 border-white/10'}
+                      `}
+                    >        
+                    <label className="text-white text-[10px] sm:text-xs font-light tracking-[0.2em] uppercase">
+                        Opacity: {imageOpacity}%
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={imageOpacity}
+                        onChange={(e) => setImageOpacity(Number(e.target.value))}
+                        className="w-full sm:w-60 accent-white"
+                      />
+                      <label className="text-white text-[10px] sm:text-xs font-light tracking-[0.2em] uppercase mt-3">
+                        Scale: {imageScale}%
+                      </label>
+                      <input
+                        type="range"
+                        min="10"
+                        max="200"
+                        value={imageScale}
+                        onChange={(e) => setImageScale(Number(e.target.value))}
+                        className="w-full sm:w-60 accent-white"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* NEXT BUTTON */}
+            <div
+                className={`transition-all duration-700 ease-out mt-4 sm:mt-6 ${
+                  hasBackgroundSelection
+                    ? "opacity-100 translate-y-0 pointer-events-auto"
+                    : "opacity-0 translate-y-4 pointer-events-none"
+                }`}
+              >
+              <button
+                type="button"
+                onClick={handleBackgroundConfirm}
+                className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-10 sm:px-16 py-4 sm:py-5 text-sm sm:text-lg rounded-full font-light tracking-[0.2em] uppercase shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:shadow-[0_0_70px_rgba(16,185,129,0.7)] hover:scale-105 transition-all duration-500"
               >
                 <span className="relative z-10">Next →</span>
                 <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* BACKGROUND STEP */}
-      {step === "background" && (
-        <div
-          className={`flex flex-col items-center gap-5 sm:gap-6 z-20 transition-all duration-1000 ${
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-        >
-          <h2 className="text-white text-2xl sm:text-3xl font-extralight tracking-[0.2em] uppercase mb-2 sm:mb-3 text-center">
-             background?
-          </h2>
-
-          {/* Color / Image Switch */}
-          <div className="flex gap-2 p-1.5 bg-white/5 rounded-full backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-            <button
-              type="button"
-              onClick={() => setBackgroundType("color")}
-              className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs ${
-                backgroundType === "color"
-                  ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
-                  : "text-white/60 hover:text-white/90 hover:bg-white/10"
+        {/* MEDIA STEP */}
+        {step === "media" && (
+          <div
+            className={`flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
+              showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+            onKeyPress={handleMediaKeyPress}
+            tabIndex={0}
+          >
+            <h2
+              className={`text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3 ${
+                isLightBackground ? "text-primary" : "text-secondary"
               }`}
             >
-              Color
-            </button>
-            <button
-              type="button"
-              onClick={() => setBackgroundType("image")}
-              className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs ${
-                backgroundType === "image"
-                  ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
-                  : "text-white/60 hover:text-white/90 hover:bg-white/10"
-              }`}
-            >
-              Image
-            </button>
-          </div>
+              add media?
+            </h2>
 
-          {/* Background Options */}
-          <div className="flex flex-col items-center gap-5 mt-3 w-full px-4 transition-all duration-500">
-            {backgroundType === "color" ? (
-              <>
-                <div
-                  onClick={() => colorInputRef.current?.click()}
-                  className="w-36 sm:w-48 h-36 sm:h-48 rounded-2xl border-4 border-white/40 shadow-[0_0_60px_rgba(255,255,255,0.3)] transition-all duration-300 cursor-pointer hover:scale-105"
-                  style={{ backgroundColor: backgroundColor || "#000000" }}
-                />
-                <input
-                  type="text"
-                  value={backgroundColor || "#000000"}
-                  onChange={(e) => handleHexChange(e.target.value)}
-                  onKeyPress={handleHexKeyPress}
-                  className="bg-white/10 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full text-center backdrop-blur-md border border-white/30 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/20 transition-all duration-500 font-mono text-sm sm:text-base tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)] w-40 sm:w-48"
-                  placeholder="#000000"
-                />
-                <input
-                  ref={colorInputRef}
-                  type="color"
-                  value={backgroundColor || "#000000"}
-                  onChange={(e) => setBackgroundColor(e.target.value)}
-                  className="opacity-0 w-0 h-0 absolute"
-                />
-              </>
-            ) : (
-              <>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                  key={backgroundImage || "image-input"}
-                />
-                <label htmlFor="image-upload" className="cursor-pointer">
-                  <div className="px-8 sm:px-12 py-4 sm:py-5 rounded-full text-white text-sm sm:text-base border-2 border-white/30 hover:border-white/70 bg-gradient-to-br from-white/10 to-white/0 hover:from-white/15 hover:to-white/5 transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] backdrop-blur-md font-light tracking-[0.15em] uppercase text-center">
-                    Upload Image
-                  </div>
-                </label>
+            <div className="flex gap-2 p-1.5 bg-white/5 rounded-full backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
+              <button
+                type="button"
+                onClick={() => setMediaType("gif")}
+                className={`px-10 py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs ${
+                  mediaType === "gif"
+                    ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
+                    : `${
+                        isLightBackground
+                          ? "text-black/60 hover:text-black/80 hover:bg-white/10"
+                          : "text-white/60 hover:text-white/90 hover:bg-white/10"
+                      }`
+                }`}
+              >
+                GIF
+              </button>
+              <button
+                type="button"
+                onClick={() => setMediaType("video")}
+                className={`px-10 py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs ${
+                  mediaType === "video"
+                    ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
+                    : `${
+                        isLightBackground
+                          ? "text-black/60 hover:text-black/80 hover:bg-white/10" 
+                          : "text-white/60 hover:text-white/90 hover:bg-white/10" 
+                      }`
+                }`}
+              >
+                Video
+              </button>
+            </div>
 
-                {backgroundImage && (
-                  <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-5 sm:p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)] w-[90%] max-w-[320px] sm:max-w-none">
-                    <label className="text-white text-[10px] sm:text-xs font-light tracking-[0.2em] uppercase">
-                      Opacity: {imageOpacity}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={imageOpacity}
-                      onChange={(e) => setImageOpacity(Number(e.target.value))}
-                      className="w-full sm:w-60 accent-white"
-                    />
-                    <label className="text-white text-[10px] sm:text-xs font-light tracking-[0.2em] uppercase mt-3">
-                      Scale: {imageScale}%
+            <div className="flex flex-col items-center gap-5 mt-3">
+              <input
+                type="file"
+                accept={mediaType === "video" ? "video/*" : "image/gif"}
+                onChange={handleMediaUpload}
+                className="hidden"
+                id="media-upload"
+                key={mediaUrl || "media-input"}
+              />
+              <label htmlFor="media-upload" className="cursor-pointer">
+               <div
+                  className={`px-12 py-5 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-base backdrop-blur-md border ${
+                    isLightBackground
+                      ? "bg-white/5 border-black/20 text-black/80 hover:bg-black/20 hover:text-black"
+                      : "bg-white/5 border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
+                  } hover:scale-105 hover:shadow-[0_8px_32px_rgba(0,0,0,0.2)]`}
+                >
+                  {mediaUrl ? "Change file" : `Upload ${mediaType === "gif" ? "GIF" : "Video"}`}
+                </div>
+              </label>
+              {mediaUrl && (
+                <>
+                {mediaType === "gif" && (
+                  <img
+                    src={mediaUrl}
+                    alt="GIF Preview"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      height: `${mediaScale}vh`,
+                      width: "auto",
+                      maxWidth: "100vw",         
+                      objectFit: "contain",  
+                      pointerEvents: "none",
+                      zIndex: -2,
+                      opacity: 0.8,
+                    }}
+                  />
+                )}
+
+                {mediaType === "video" && (
+                  <video
+                    ref={videoRef}
+                    src={mediaUrl}
+                    autoPlay
+                    loop
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      height: `${videoScale}vh`,
+                      width: "auto",
+                      maxWidth: "100vw",         
+                      objectFit: "contain",  
+                      pointerEvents: "none",
+                      zIndex: 0,
+                      opacity: 0.15,
+                    }}
+                  />
+                )}
+                </>
+              )}
+              <span className={`${isLightBackground ? "text-primary" : "text-secondary" } text-xs block`}>
+                Max file size: 50MB
+              </span>
+              {mediaUrl && (
+                <>
+                  <p className={`text-xs font-light tracking-wider animate-in fade-in duration-500 ${isLightBackground ? "text-primary" : "text-secondary"} text-xs block`}>
+                    ✓ File uploaded successfully
+                  </p>
+                  <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
+                    <label className={`${isLightBackground ? "text-primary" : "text-secondary"} text-xs font-light tracking-[0.2em] uppercase`}>
+                      {mediaType === "video" ? "Video" : "Image"} Scale: {mediaType === "video" ? videoScale : mediaScale}%
                     </label>
                     <input
                       type="range"
                       min="10"
                       max="200"
-                      value={imageScale}
-                      onChange={(e) => setImageScale(Number(e.target.value))}
-                      className="w-full sm:w-60 accent-white"
+                      value={mediaType === "video" ? videoScale : mediaScale}
+                      onChange={(e) =>
+                        mediaType === "video"
+                          ? setVideoScale(Number(e.target.value))
+                          : setMediaScale(Number(e.target.value))
+                      }
+                      className="w-60 accent-white"
                     />
+                    {mediaType === "video" && mediaUrl && (
+                      <div
+                        className={`flex flex-col items-center gap-3 mt-4 p-6 rounded-2xl w-72 backdrop-blur-md transition-all duration-500 ${
+                          isLightBackground
+                            ? "bg-black/10 border border-black/20 shadow-[0_8px_32px_rgba(0,0,0,0.2)]"
+                            : "bg-white/10 border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+                        }`}
+                      >
+                        <label className={`${isLightBackground ? "text-primary" : "text-secondary"} text-xs font-light tracking-[0.2em] uppercase block mb-1`}>
+                          Original Video Volume: {videoVolume}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={videoVolume}
+                          onChange={(e) => setVideoVolume(Number(e.target.value))}
+                          className="w-full accent-white"
+                        />
+                      </div>
+                    )}
                   </div>
-                )}
-              </>
+                </>
+              )}
+            </div>
+
+            {hasMediaSelection && (
+              <button
+                type="button"
+                onClick={handleMediaConfirm}
+                className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-16 py-5 text-lg rounded-full mt-6 animate-in fade-in slide-in-from-bottom-4 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500"
+              >
+                <span className="relative z-10">Next →</span>
+                <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
+              </button>
             )}
           </div>
+        )}
 
-          {/* NEXT BUTTON */}
+        {/* AUDIO STEP */}
+        {step === "audio" && (
           <div
-              className={`transition-all duration-700 ease-out mt-4 sm:mt-6 ${
-                hasBackgroundSelection
-                  ? "opacity-100 translate-y-0 pointer-events-auto"
-                  : "opacity-0 translate-y-4 pointer-events-none"
-              }`}
-            >
-            <button
-              type="button"
-              onClick={handleBackgroundConfirm}
-              className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-10 sm:px-16 py-4 sm:py-5 text-sm sm:text-lg rounded-full font-light tracking-[0.2em] uppercase shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:shadow-[0_0_70px_rgba(16,185,129,0.7)] hover:scale-105 transition-all duration-500"
-            >
-              <span className="relative z-10">Next →</span>
-              <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MEDIA STEP */}
-      {step === "media" && (
-        <div
-          className={`flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-          onKeyPress={handleMediaKeyPress}
-          tabIndex={0}
-        >
-          <h2 className="text-white text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3">
-            add media?
-          </h2>
-
-          <div className="flex gap-2 p-1.5 bg-white/5 rounded-full backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
-            <button
-              type="button"
-              onClick={() => setMediaType("gif")}
-              className={`px-10 py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs ${
-                mediaType === "gif"
-                  ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
-                  : "text-white/60 hover:text-white/90 hover:bg-white/10"
-              }`}
-            >
-              GIF
-            </button>
-            <button
-              type="button"
-              onClick={() => setMediaType("video")}
-              className={`px-10 py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs ${
-                mediaType === "video"
-                  ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
-                  : "text-white/60 hover:text-white/90 hover:bg-white/10"
-              }`}
-            >
-              Video
-            </button>
-          </div>
-
-          <div className="flex flex-col items-center gap-5 mt-3">
-            <input
-              type="file"
-              accept={mediaType === "video" ? "video/*" : "image/gif"}
-              onChange={handleMediaUpload}
-              className="hidden"
-              id="media-upload"
-              key={mediaUrl || "media-input"}
-            />
-            <label htmlFor="media-upload" className="cursor-pointer">
-              <div className="px-12 py-5 rounded-full text-white text-base border-2 border-white/30 hover:border-white/70 bg-gradient-to-br from-white/10 to-white/0 hover:from-white/15 hover:to-white/5 transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] backdrop-blur-md font-light tracking-[0.15em] uppercase">
-                {mediaUrl ? "Change file" : `Upload ${mediaType === "gif" ? "GIF" : "Video"}`}
-              </div>
-            </label>
+            className={`relative flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
+              showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+            onKeyUp={handleAudioKeyPress}
+            tabIndex={0}
+          >
+            {/* MEDIA PREVIEW */}
             {mediaUrl && (
               <>
-               {mediaType === "gif" && (
-                <img
-                  src={mediaUrl}
-                  alt="GIF Preview"
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    height: `${mediaScale}vh`,
-                    width: "auto",
-                    maxWidth: "100vw",         
-                    objectFit: "contain",  
-                    pointerEvents: "none",
-                    zIndex: -2,
-                    opacity: 0.8,
-                  }}
-                />
-              )}
-
-              {mediaType === "video" && (
-                <video
-                  ref={videoRef}
-                  src={mediaUrl}
-                  autoPlay
-                  loop
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    height: `${videoScale}vh`,
-                    width: "auto",
-                    maxWidth: "100vw",         
-                    objectFit: "contain",  
-                    pointerEvents: "none",
-                    zIndex: 0,
-                    opacity: 0.15,
-                  }}
-                />
-              )}
-              </>
-            )}
-            <span className="text-white/20 text-xs block">Max file size: 50MB</span>
-            {mediaUrl && (
-              <>
-                <p className="text-white/70 text-xs font-light tracking-wider animate-in fade-in duration-500">
-                  ✓ File uploaded successfully
-                </p>
-                <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
-                  <label className="text-white text-xs font-light tracking-[0.2em] uppercase">
-                    {mediaType === "video" ? "Video" : "Image"} Scale: {mediaType === "video" ? videoScale : mediaScale}%
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="200"
-                    value={mediaType === "video" ? videoScale : mediaScale}
-                    onChange={(e) =>
-                      mediaType === "video"
-                        ? setVideoScale(Number(e.target.value))
-                        : setMediaScale(Number(e.target.value))
-                    }
-                    className="w-60 accent-white"
+                {mediaType === "gif" && (
+                  <img
+                    src={mediaUrl}
+                    alt="GIF Preview"
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      height: `${mediaScale}vh`,   
+                      width: "auto",
+                      maxWidth: "100vw",           
+                      objectFit: "contain",        
+                      pointerEvents: "none",
+                      zIndex: 0,
+                      opacity: 0.15,
+                    }}
                   />
-                  {mediaType === "video" && mediaUrl && (
-                  <div className="flex flex-col items-center gap-3 mt-4 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">
-                    <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-1">
-                      Original Video Volume: {videoVolume}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={videoVolume}
-                      onChange={(e) => setVideoVolume(Number(e.target.value))}
-                      className="w-full accent-white"
-                    />
-                  </div>
                 )}
-                </div>
+
+                {mediaType === "video" && (
+                  <video
+                    ref={videoRef}
+                    src={mediaUrl}
+                    autoPlay
+                    loop
+                    style={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      height: `${videoScale}vh`,
+                      width: "auto",
+                      maxWidth: "100vw",        
+                      objectFit: "contain",     
+                      pointerEvents: "none",
+                      zIndex: 0,
+                      opacity: 0.15,
+                    }}
+                  />
+                )}
               </>
             )}
-          </div>
 
-          {hasMediaSelection && (
-            <button
-              type="button"
-              onClick={handleMediaConfirm}
-              className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-16 py-5 text-lg rounded-full mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500"
-            >
-              <span className="relative z-10">Next →</span>
-              <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
-            </button>
-          )}
-        </div>
-      )}
+            <h2 className={`text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3 ${
+              isLightBackground ? "text-primary" : "text-secondary"
+            }`}>
+              add audio?
+            </h2>
 
-      {/* AUDIO STEP */}
-      {step === "audio" && (
-        <div
-          className={`relative flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-          onKeyUp={handleAudioKeyPress}
-          tabIndex={0}
-        >
-          {/* MEDIA PREVIEW */}
-          {mediaUrl && (
-            <>
-              {mediaType === "gif" && (
-                <img
-                  src={mediaUrl}
-                  alt="GIF Preview"
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    height: `${mediaScale}vh`,   
-                    width: "auto",
-                    maxWidth: "100vw",           
-                    objectFit: "contain",        
-                    pointerEvents: "none",
-                    zIndex: 0,
-                    opacity: 0.15,
-                  }}
-                />
-              )}
-
-              {mediaType === "video" && (
-                <video
-                  ref={videoRef}
-                  src={mediaUrl}
-                  autoPlay
-                  loop
-                  style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    height: `${videoScale}vh`,
-                    width: "auto",
-                    maxWidth: "100vw",        
-                    objectFit: "contain",     
-                    pointerEvents: "none",
-                    zIndex: 0,
-                    opacity: 0.15,
-                  }}
-                />
-              )}
-            </>
-          )}
-
-          <h2 className="text-white text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3">
-            add audio?
-          </h2>
-
-          <div className="flex flex-col items-center gap-5 mt-3">
-            <input
-              type="file"
-               accept=".mp3, .wav, .m4a, .ogg, .mp4"
-              onChange={handleAudioUpload}
-              className="hidden"
-              id="audio-upload"
-              key={audioUrl || "audio-input"}
-            />
-            <label htmlFor="audio-upload" className="cursor-pointer">
-              <div className="px-12 py-5 rounded-full text-white text-base border-2 border-white/30 hover:border-white/70 bg-gradient-to-br from-white/10 to-white/0 hover:from-white/15 hover:to-white/5 transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] backdrop-blur-md font-light tracking-[0.15em] uppercase">
+            <div className="flex flex-col items-center gap-5 mt-3">
+              <input
+                type="file"
+                accept=".mp3, .wav, .m4a, .ogg, .mp4"
+                onChange={handleAudioUpload}
+                className="hidden"
+                id="audio-upload"
+                key={audioUrl || "audio-input"}
+              />
+              <label htmlFor="audio-upload" className="cursor-pointer">
+              <div
+                className={`px-12 py-5 rounded-full text-base border-2 border-white/30 bg-linear-to-br from-white/10 to-white/0 hover:from-white/15 hover:to-white/5 backdrop-blur-md font-light tracking-[0.15em] uppercase transition-all duration-500 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]
+                  ${isLightBackground ? "text-primary hover:text-primary hover:border-primary/70" : "text-secondary hover:text-secondary hover:border-white/70"}
+                `}
+              >
                 {audioUrl ? "Change Audio" : "Upload Audio"}
               </div>
-            </label>
 
-            {audioUrl && (
-                <div className="flex flex-col items-center gap-4 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-80">
-                  <p className="text-white/70 text-xs font-light tracking-wider">✓ Audio uploaded</p>
+              </label>
 
-                  <div className="w-full">
-                    <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-2">
-                      Volume: {audioVolume}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={audioVolume}
-                      onChange={(e) => setAudioVolume(Number(e.target.value))}
-                      className="w-full accent-white"
-                    />
-                  </div>
+              {audioUrl && (
+                  <div className="flex flex-col items-center gap-4 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-80">
+                    <p className="text-white/70 text-xs font-light tracking-wider">✓ Audio uploaded</p>
 
-                  <button
-                    type="button"
-                    onClick={() => setAudioUrl("")}
-                    className="mt-2 px-4 py-2 text-xs text-white bg-red-500 rounded-full hover:bg-red-600 transition-all"
-                  >
-                    Remove Audio
-                  </button>
-                </div>
-              )}
-
-            {mediaType === "video" && (
-              <>
-                <div className="text-white/40 text-xs font-light tracking-[0.2em] uppercase mt-6">
-                  Video audio options
-                </div>
-
-                <label className="flex items-center gap-3 cursor-pointer bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300">
-                  <input
-                    type="checkbox"
-                    checked={muteOriginalAudio}
-                    onChange={(e) => setMuteOriginalAudio(e.target.checked)}
-                    className="w-4 h-4 accent-emerald-500"
-                  />
-                  <span className="text-white text-xs font-light tracking-[0.15em] uppercase">
-                    Mute original video audio
-                  </span>
-                </label>
-
-                {videoAudioUrl && (
-                  <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">
-                    <p className="text-white/70 text-xs font-light tracking-wider">✓ Background audio uploaded</p>
                     <div className="w-full">
                       <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-2">
-                        Background Volume: {videoAudioVolume}%
+                        Volume: {audioVolume}%
                       </label>
                       <input
                         type="range"
                         min="0"
                         max="100"
-                        value={videoAudioVolume}
-                        onChange={(e) => setVideoAudioVolume(Number(e.target.value))}
+                        value={audioVolume}
+                        onChange={(e) => setAudioVolume(Number(e.target.value))}
                         className="w-full accent-white"
                       />
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setAudioUrl("")}
+                      className="mt-2 px-4 py-2 text-xs text-white bg-red-500 rounded-full hover:bg-red-600 transition-all"
+                    >
+                      Remove Audio
+                    </button>
                   </div>
                 )}
-              </>
-            )}
-          </div>
 
-          <button
-            type="button"
-            onClick={handleAudioConfirm}
-            className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-16 py-5 text-lg rounded-full mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500"
-          >
-            <span className="relative z-10">{audioUrl || videoAudioUrl ? "Next →" : "Skip →"}</span>
-            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
-          </button>
-        </div>
-      )}
+              {mediaType === "video" && (
+                <>
+                  <div className={`text-xs font-light tracking-[0.2em] uppercase mt-6 ${
+                    isLightBackground ? "text-primary" : "text-secondary"
+                  }`}>
+                    Video audio options
+                  </div>
 
-      {/* SETTINGS STEP */}
-      {step === "settings" && (
-        <div
-          className={`flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
-            showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-          onKeyPress={handleSettingsKeyPress}
-          tabIndex={0}
-        >
-          <h2 className="text-white text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3">
-            link settings
-          </h2>
+                  <label className="flex items-center gap-3 cursor-pointer bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300">
+                    <input
+                      type="checkbox"
+                      checked={muteOriginalAudio}
+                      onChange={(e) => setMuteOriginalAudio(e.target.checked)}
+                      className="w-4 h-4 accent-emerald-500"
+                    />
+                    <span className={`text-xs font-light tracking-[0.15em] uppercase ${
+                      isLightBackground ? "text-primary" : "text-secondary"
+                    }`}>
+                      Mute original video audio
+                    </span>
+                  </label>
 
-          <div className="flex flex-col items-center gap-5 bg-white/10 backdrop-blur-md p-10 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
-            <label className="text-white text-base font-light tracking-[0.2em] uppercase">Link expires in:</label>
-
-            <div className="flex gap-2">
-              {[1, 8, 24].map((hours) => (
-                <button
-                  key={hours}
-                  type="button"
-                  onClick={() => setExpiryHours(hours)}
-                  className={`px-8 py-4 rounded-xl transition-all duration-500 font-light tracking-[0.15em] uppercase text-sm ${
-                    expiryHours === hours
-                      ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)] scale-110"
-                      : "text-white/60 hover:text-white/90 hover:bg-white/10 border border-white/20"
-                  }`}
-                >
-                  {hours}h
-                </button>
-              ))}
+                  {videoAudioUrl && (
+                    <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">
+                      <p className="text-white/70 text-xs font-light tracking-wider">✓ Background audio uploaded</p>
+                      <div className="w-full">
+                        <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-2">
+                          Background Volume: {videoAudioVolume}%
+                        </label>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={videoAudioVolume}
+                          onChange={(e) => setVideoAudioVolume(Number(e.target.value))}
+                          className="w-full accent-white"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-            
-            <p className="text-white/50 text-xs font-light tracking-wider mt-3 text-center max-w-sm">
-              {expiryHours === 0
-                ? "Link will be accessible forever"
-                : `Link will be automatically deleted after ${expiryHours} hour${expiryHours > 1 ? "s" : ""}`}
-            </p>
-          </div>
 
-          {mediaType === "video" && (
-            <div className="flex flex-col items-center gap-4 bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
-              <label className="text-white text-base font-light tracking-[0.2em] uppercase">Video playback:</label>
-              <label className="flex items-center gap-3 cursor-pointer bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300">
-                <input
-                  type="checkbox"
-                  checked={showVideoControls}  
-                  onChange={(e) => setShowVideoControls(e.target.checked)}
-                  className="w-4 h-4 accent-emerald-500"
-                />
-                <span className="text-white text-xs font-light tracking-[0.15em] uppercase">
-                  Allow viewers to control video
-                </span>
+            <button
+              type="button"
+              onClick={handleAudioConfirm}
+              className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-16 py-5 text-lg rounded-full mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all"
+            >
+              <span className="relative z-10">{audioUrl || videoAudioUrl ? "Next →" : "Skip →"}</span>
+              <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
+            </button>
+          </div>
+        )}
+
+        {/* SETTINGS STEP */}
+        {step === "settings" && (
+          <div
+            className={`flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
+              showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+            onKeyPress={handleSettingsKeyPress}
+            tabIndex={0}
+          >
+            <h2 className={`text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3 ${
+              isLightBackground ? "text-primary" : "text-secondary"
+            }`}>
+              link settings
+            </h2>
+
+            <div className="flex flex-col items-center gap-5 bg-white/10 backdrop-blur-md p-10 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
+              <label className={`${isLightBackground ? "text-primary":"text-secondary" } text-base font-light tracking-[0.2em] uppercase`}>
+                Link expires in:
               </label>
-              <p className="text-white/50 text-xs font-light tracking-wider text-center max-w-sm">
-                {showVideoControls
-                  ? "Viewers can pause, play, and scrub through the video"
-                  : "Video will loop automatically without controls"}
+
+
+              <div className="flex gap-2">
+  {[1, 8, 24].map((hours) => (
+    <button
+      key={hours}
+      type="button"
+      onClick={() => setExpiryHours(hours)}
+      className={`px-8 py-4 rounded-xl transition-all duration-500 font-light tracking-[0.15em] uppercase text-sm ${
+        expiryHours === hours
+          ? `${
+              isLightBackground
+                ? "bg-primary text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-110"
+                : "bg-secondary text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)] scale-110"
+            }`
+          : `${
+              isLightBackground
+                ? "text-primary/90 hover:text-primary hover:bg-black/10 border border-secondary/40"
+                : "text-secondary/90 hover:text-secondary hover:bg-white/10 border border-white/20"
+            }`
+      }`}
+    >
+      {hours}h
+    </button>
+  ))}
+</div>
+
+              
+              <p className={`${isLightBackground ? "text-primary" : "text-secondary"} text-xs font-light tracking-wider mt-3 text-center max-w-sm`}>
+                {expiryHours === 0
+                  ? "Link will be accessible forever"
+                  : `Link will be automatically deleted after ${expiryHours} hour${expiryHours > 1 ? "s" : ""}`}
               </p>
             </div>
-          )}
 
-          <button
-            type="button"
-            onClick={handleFinalConfirm}
-            disabled={isCreating}
-            className="group relative bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-16 py-5 text-lg rounded-full mt-6 animate-in fade-in slide-in-from-bottom-4 duration-500 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
-          >
-            <span className="relative z-10">Create Link →</span>
-            <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
-          </button>
-        </div>
-      )}
+            {mediaType === "video" && (
+              <div className="flex flex-col items-center gap-4 bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/30 shadow-[0_8px_48px_rgba(0,0,0,0.4)]">
+                <label className={`${isLightBackground ? "text-primary" : "text-secondary"} text-base font-light tracking-[0.2em] uppercase`}>
+                  Video playback:
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/30 hover:border-white/50 transition-all duration-300">
+                  <input
+                    type="checkbox"
+                    checked={showVideoControls}  
+                    onChange={(e) => setShowVideoControls(e.target.checked)}
+                    className="w-4 h-4 accent-emerald-500"
+                  />
+                  <span className={`${isLightBackground ? "text-primary" : "text-secondary"} text-xs font-light tracking-[0.15em] uppercase`}>
+                    Allow viewers to control video
+                  </span>
+                </label>
+                <p className={`text-xs font-light tracking-wider text-center max-w-sm ${
+                  isLightBackground ? "text-primary/70" : "text-secondary/70"
+                }`}>
+                  {showVideoControls
+                    ? "Viewers can pause, play, and scrub through the video"
+                    : "Video will loop automatically without controls"}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleFinalConfirm}
+              disabled={isCreating}
+              className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-16 py-5 text-lg rounded-full mt-6 animate-in fade-in slide-in-from-bottom-4 font-light tracking-[0.2em] uppercase shadow-[0_0_50px_rgba(16,185,129,0.5)] hover:shadow-[0_0_80px_rgba(16,185,129,0.7)] hover:scale-110 transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+            >
+              <span className="relative z-10">Create Link →</span>
+              <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
+            </button>
+          </div>
+        )}
+
 
     </div>
   )

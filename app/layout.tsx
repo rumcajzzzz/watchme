@@ -1,15 +1,15 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import Footer from "@/components/footer"
+import Header from "@/components/header"
 
 const geist = Geist({ subsets: ["latin"] })
-const geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "w4tchme",
-  description: "Create and share visual screens — developed by rumcajzdev",
+  description: "",
   icons: {
     icon: [
       { url: "/w4tchmelogo.png" },
@@ -18,14 +18,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+interface RootLayoutProps {
+  children: React.ReactNode;
+  nickname?: string;
+}
+
+export default function RootLayout({ children, nickname }: RootLayoutProps) {
   return (
     <html lang="en" className="bg-black text-white">
       <body className={`${geist.className} font-sans antialiased relative`}>
+        <Header nickname={nickname} />
         <main className="min-h-screen w-full flex flex-col items-center justify-center">
           {children}
         </main>
@@ -33,5 +35,5 @@ export default function RootLayout({
         <Analytics />
       </body>
     </html>
-  )
+  );
 }
