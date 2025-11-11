@@ -310,6 +310,11 @@ export default function Home() {
       className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-all duration-700"
       style={getBackgroundStyle()}
     >
+          
+    <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20">
+      w4tchme!
+    </div>
+
      {backgroundType === "image" && backgroundImage && (
         <img
           src={backgroundImage}
@@ -352,8 +357,8 @@ export default function Home() {
         </div>
       )}
 
-      {nickname && (step === "media" || step === "audio" || step === "settings") && mediaUrl && (
-        <div className="absolute top-6 left-6 z-20 text-white text-lg font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
+      {nickname && step != "nickname" && (
+        <div className="absolute top-15 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase">
           {nickname}
         </div>
       )}
@@ -802,19 +807,7 @@ export default function Home() {
                 </button>
               ))}
             </div>
-
-            <button
-              type="button"
-              onClick={() => setExpiryHours(0)}
-              className={`px-8 py-3 rounded-xl transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs mt-2 ${
-                expiryHours === 0
-                  ? "bg-purple-500 text-white shadow-[0_8px_24px_rgba(168,85,247,0.4)]"
-                  : "text-white/40 hover:text-white/70 hover:bg-white/5 border border-white/10"
-              }`}
-            >
-              Never expires
-            </button>
-
+            
             <p className="text-white/50 text-xs font-light tracking-wider mt-3 text-center max-w-sm">
               {expiryHours === 0
                 ? "Link will be accessible forever"

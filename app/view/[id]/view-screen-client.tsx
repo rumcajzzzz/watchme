@@ -58,14 +58,8 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
   const getBackgroundStyle = () => {
     if (screen.background_type === "color") {
       return { backgroundColor: screen.background_color || "#000000" }
-    } else if (screen.background_image) {
-      return {
-        backgroundImage: `url(${screen.background_image})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
     }
-    return { backgroundColor: "#000000" }
+    return { backgroundColor: "#000000" } // tło defaultowe
   }
 
   // **SPLASH SCREEN** z fade-out
@@ -94,9 +88,16 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     >
       {/* Image opacity overlay */}
       {screen.background_type === "image" && screen.background_image && (
-        <div
-          className="absolute inset-0 bg-black transition-opacity duration-1000"
-          style={{ opacity: (100 - screen.image_opacity) / 100 }}
+        <img
+          src={screen.background_image}
+          alt="Background"
+          className="absolute inset-0 object-cover transition-transform duration-1000 ease-out"
+          style={{
+            width: "100%",
+            height: "100%",
+            transform: `scale(${screen.image_scale / 100})`,
+            opacity: screen.image_opacity / 100,
+          }}
         />
       )}
 
@@ -128,8 +129,14 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
         )}
       </div>
 
+      {/* w4tchme label */}
+      <div className="absolute top-6 w-full text-center text-white text-xs font-thin tracking-widest opacity-20">
+        w4tchme!
+      </div>
+
+      {/* nickname pod w4tchme */}
       {screen.nickname && (
-        <div className="absolute top-6 left-6 z-20 text-white text-lg font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
+        <div className="absolute top-12 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase opacity-50 pointer-events-none">
           {screen.nickname}
         </div>
       )}
