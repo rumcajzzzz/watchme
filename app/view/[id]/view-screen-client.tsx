@@ -146,8 +146,8 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       )}
 
       <div className="absolute inset-0 flex items-center justify-center z-10">
-        {screen.media_type === "video" ? (
-          <video
+          {screen.media_type === "video" ? (
+            <video
             ref={videoRef}
             src={screen.media_url}
             loop
@@ -167,6 +167,12 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
               maxWidth: "100vw",
               objectFit: "contain",
               pointerEvents: "none",
+            }}
+            onCanPlay={() => {
+              if (videoRef.current) {
+                videoRef.current.volume = screen.video_audio_volume / 100
+                videoRef.current.play().catch(console.log)
+              }
             }}
           />
         ) : (

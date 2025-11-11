@@ -52,12 +52,13 @@ export default function Home() {
   const [videoAudioUrl, setVideoAudioUrl] = useState<string>("")
   const [videoAudioVolume, setVideoAudioVolume] = useState<number>(50)
   const [muteOriginalAudio, setMuteOriginalAudio] = useState<boolean>(false)
-  const [expiryHours, setExpiryHours] = useState<number>(24)
+  const [expiryHours, setExpiryHours] = useState<number>(1)
   const [showContent, setShowContent] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [videoVolume, setVideoVolume] = useState<number>(100)
   const [mediaScale, setMediaScale] = useState<number>(100)
+  const [screenId, setScreenId] = useState<string>("")
 
   const audioRef = useRef<HTMLAudioElement>(null)
   const videoAudioRef = useRef<HTMLAudioElement>(null)
@@ -87,6 +88,28 @@ export default function Home() {
       videoRef.current.muted = muteOriginalAudio
     }
   }, [muteOriginalAudio])
+  useEffect(() => {
+    if (videoRef.current) {
+      if (step === "media" || step === "audio") {
+        videoRef.current.play().catch(() => {})
+        videoRef.current.volume = videoVolume / 100
+        videoRef.current.muted = muteOriginalAudio
+      } else {
+        videoRef.current.pause()
+      }
+    }
+  }, [step, videoVolume, muteOriginalAudio])
+  useEffect(() => {
+    if (audioRef.current) {
+      if (step === "audio") {
+        audioRef.current.play().catch(() => {})
+        audioRef.current.volume = audioVolume / 100
+      } else {
+        audioRef.current.pause()
+      }
+    }
+  }, [step, audioVolume])
+
 
   const handleNicknameConfirm = () => {
     setShowContent(false)
@@ -118,12 +141,13 @@ export default function Home() {
     }
   }
   const handleMediaConfirm = () => {
-    setShowContent(false)
+    setVideoAudioVolume(videoVolume);
+    setShowContent(false);
     setTimeout(() => {
-      setStep("audio")
-      setShowContent(true)
-    }, 500)
-  }
+      setStep("audio");
+      setShowContent(true);
+    }, 500);
+  };
   const handleAudioKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleAudioConfirm()
@@ -142,14 +166,10 @@ export default function Home() {
     }
   }
   const compressVideo = async (file: File): Promise<Blob> => {
-    // Check if file size is over 15MB
-    const maxSize = 15 * 1024 * 1024 // 15MB in bytes
+    const maxSize = 15 * 1024 * 1024 
     if (file.size <= maxSize) {
       return file
     }
-
-    // For now, we'll return the original file since browser-based video compression
-    // requires additional libraries. The Python script can be run server-side later.
     console.log("[v0] Video file is over 15MB, compression recommended")
     return file
   }
@@ -750,7 +770,13 @@ export default function Home() {
 
                 {mediaType === "video" && (
                   <video
-                    ref={videoRef}
+                  ref={(el) => {
+                    if (el) {
+                      el.volume = videoVolume / 100
+                      el.muted = muteOriginalAudio
+                      videoRef.current = el
+                    }
+                  }}
                     src={mediaUrl}
                     autoPlay
                     loop
@@ -903,29 +929,29 @@ export default function Home() {
 
 
               <div className="flex gap-2">
-  {[1, 8, 24].map((hours) => (
-    <button
-      key={hours}
-      type="button"
-      onClick={() => setExpiryHours(hours)}
-      className={`px-8 py-4 rounded-xl transition-all duration-500 font-light tracking-[0.15em] uppercase text-sm ${
-        expiryHours === hours
-          ? `${
-              isLightBackground
-                ? "bg-primary text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-110"
-                : "bg-secondary text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)] scale-110"
-            }`
-          : `${
-              isLightBackground
-                ? "text-primary/90 hover:text-primary hover:bg-black/10 border border-secondary/40"
-                : "text-secondary/90 hover:text-secondary hover:bg-white/10 border border-white/20"
-            }`
-      }`}
-    >
-      {hours}h
-    </button>
-  ))}
-</div>
+                {[1, 8, 24].map((hours) => (
+                  <button
+                    key={hours}
+                    type="button"
+                    onClick={() => setExpiryHours(hours)}
+                    className={`px-8 py-4 rounded-xl transition-all duration-500 font-light tracking-[0.15em] uppercase text-sm ${
+                      expiryHours === hours
+                        ? `${
+                            isLightBackground
+                              ? "bg-primary text-white shadow-[0_8px_24px_rgba(0,0,0,0.3)] scale-110"
+                              : "bg-secondary text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)] scale-110"
+                          }`
+                        : `${
+                            isLightBackground
+                              ? "text-primary/90 hover:text-primary hover:bg-black/10 border border-secondary/40"
+                              : "text-secondary/90 hover:text-secondary hover:bg-white/10 border border-white/20"
+                          }`
+                    }`}
+                  >
+                    {hours}h
+                  </button>
+                ))}
+              </div>
 
               
               <p className={`${isLightBackground ? "text-primary" : "text-secondary"} text-xs font-light tracking-wider mt-3 text-center max-w-sm`}>
