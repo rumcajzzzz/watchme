@@ -433,8 +433,8 @@ export default function Home() {
               </button>
               <button
                 type="button"
-                onClick={() => setBackgroundType("image")}
-                className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs $transition-all duration-1000 ${
+                onClick={() => {setBackgroundType("image");  setBackgroundColor("#000000")}}
+                className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-1000 ${
                   isLightBackground ? "text-primary" : "text-secondary"
             }`}>
                 Image
