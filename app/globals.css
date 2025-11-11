@@ -119,12 +119,39 @@
   * {
     @apply border-border outline-ring/50;
   }
-  html {
-    font-size: clamp(0.4rem, 1vw + 0.5rem, 0.6rem) !important;
-    padding: clamp(0.5rem, 1vw + 0.2rem, 0.4rem) !important;
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    -webkit-text-size-adjust: 100%; 
+    -webkit-tap-highlight-color: transparent;
   }
+  
+  #main-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    padding: env(safe-area-inset-top, 0)
+             env(safe-area-inset-right, 0)
+             env(safe-area-inset-bottom, 0)
+             env(safe-area-inset-left, 0);
+    box-sizing: border-box;
+  }
+  video, img {
+    -webkit-user-select: none;
+    -webkit-touch-callout: none; 
+    touch-action: none;
+  }
+  html {
+    font-size: clamp(0.4rem, 1vw + 0.5rem, 0.6rem);
+  }
+
   body {
-    @apply bg-background text-foreground;
+    padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
   }
 }
 

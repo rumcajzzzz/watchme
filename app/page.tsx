@@ -332,26 +332,20 @@ export default function Home() {
         <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
           {mediaType === "video" ? (
             <video
-              ref={videoRef}
               src={mediaUrl}
-              autoPlay
-              loop
-              muted={muteOriginalAudio}
-              className="object-contain transition-all duration-500 opacity-30"
-              style={{
-                maxWidth: `${videoScale}%`,
-                maxHeight: `${videoScale}%`,
-              }}
+              playsInline
+              controls={false}
+              disablePictureInPicture
+              controlsList="nodownload nofullscreen noremoteplayback"
+              className="pointer-events-none select-none object-contain max-h-[80vh]"
+              tabIndex={-1}
             />
           ) : (
             <img
-              src={mediaUrl || "/placeholder.svg"}
-              alt="Media"
-              className="object-contain transition-all duration-500 opacity-30"
-              style={{
-                maxWidth: `${mediaScale}%`,
-                maxHeight: `${mediaScale}%`,
-              }}
+              src={mediaUrl}
+              alt=""
+              draggable={false}
+              className="pointer-events-none select-none object-contain max-h-[80vh]"
             />
           )}
         </div>
