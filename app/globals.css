@@ -119,6 +119,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    font-size: clamp(0.4rem, 1vw + 0.5rem, 0.6rem) !important;
+    padding: clamp(0.5rem, 1vw + 0.2rem, 0.4rem) !important;
+  }
   body {
     @apply bg-background text-foreground;
   }
