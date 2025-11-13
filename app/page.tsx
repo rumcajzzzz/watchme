@@ -405,7 +405,6 @@ export default function Home() {
                 onKeyPress={handleNicknameKeyPress}
                 placeholder="Your name..."
                 className="bg-white/10 text-white px-8 sm:px-10 py-4 sm:py-5 rounded-full text-center backdrop-blur-md border border-white/30 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/20 transition-all duration-500 text-lg sm:text-xl tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)] placeholder:text-white/30 w-full max-w-[340px]"
-                autoFocus
               />
 
               {/* animowany przycisk, który pojawia się pod inputem, nie zmieniając layoutu */}
