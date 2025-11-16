@@ -8,7 +8,6 @@ interface SettingsStepProps {
   setExpiryHours: (h: number) => void;
   showVideoControls: boolean;
   setShowVideoControls: (x: boolean) => void;
-  handleSettingsKeyPress: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   handleFinalConfirm: () => void;
   isCreating: boolean;
 }
@@ -20,7 +19,6 @@ const SettingsStep: React.FC<SettingsStepProps> = ({
   setExpiryHours,
   showVideoControls,
   setShowVideoControls,
-  handleSettingsKeyPress,
   handleFinalConfirm,
   isCreating,
 }) => {

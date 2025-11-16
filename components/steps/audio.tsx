@@ -1,5 +1,5 @@
 import { easeOut, motion } from "framer-motion";
-import React, { RefObject } from "react";
+import React from "react";
 
 interface AudioStepProps {
   mediaType: "gif" | "video";
@@ -141,10 +141,10 @@ const AudioStep: React.FC<AudioStepProps> = ({
 
         {audioUrl && (
           <div className="flex flex-col items-center gap-4 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-80">
-            <p className="text-white/70 text-xs font-light tracking-wider">✓ Audio uploaded</p>
+            <p className={`text-xs font-light tracking-wider ${isLightBackground ? "text-primary" : "text-secondary"}`}>✓ Audio uploaded</p>
 
             <div className="w-full">
-              <label className="text-white text-xs font-light tracking-[0.2em] uppercase block mb-2">
+              <label className={`text-xs font-light tracking-[0.2em] uppercase block mb-2 ${isLightBackground ? "text-primary" : "text-secondary"}`}>
                 Volume: {audioVolume}%
               </label>
               <input
@@ -195,7 +195,9 @@ const AudioStep: React.FC<AudioStepProps> = ({
 
             {videoAudioUrl && (
               <div className="flex flex-col items-center gap-3 bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-72">
-                <p className="text-white/70 text-xs font-light tracking-wider">
+               <p className={`text-white/70 text-xs font-light tracking-wider ${
+                  isLightBackground ? "text-primary" : "text-secondary"
+                }`}>
                   ✓ Background audio uploaded
                 </p>
                 <div className="w-full">

@@ -12,7 +12,9 @@ import AudioStep from "@/components/steps/audio"
 import SettingsStep from "@/components/steps/settings"
 
 import { useMediaSync } from "@/hooks/useMediaSync";
-import { AnimatePresence } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
+import { useUploadLoader } from "@/hooks/useUploadLoader";
+import UploadOverlay from "@/components/uploadOverlay"
 
 const supabase = createClient()
 
@@ -66,7 +68,19 @@ export default function Home() {
   const [videoVolume, setVideoVolume] = useState<number>(100)
   const [mediaScale, setMediaScale] = useState<number>(100)
   const colorInputRef = useRef<HTMLInputElement>(null)
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 3;
+      const y = (e.clientY / window.innerHeight - 0.5) * 3;
+      setMousePosition({ x, y });
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+  
+  const { uploading, progress, startUploading, finishUploading } = useUploadLoader();
   const { videoRef, audioRef, videoAudioRef } = useMediaSync({
     step,
     audioVolume,
@@ -81,30 +95,34 @@ export default function Home() {
       handleMediaConfirm()
     }
   }
-  const handleMediaConfirm = () => {
-    setVideoAudioVolume(videoVolume);
-    handleNextStep("audio")
-  };
-
   const handleAudioKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleAudioConfirm()
     }
   }
+  const handleHexChange = (value: string) => {
+    let normalizedValue = value.trim()
+    if (normalizedValue && !normalizedValue.startsWith("#")) {
+      normalizedValue = "#" + normalizedValue
+    }
+    setBackgroundColor(normalizedValue || "#000000")
+  }
+  const getBackgroundStyle = () => {
+    if (step === "nickname") return { backgroundColor: "#000000" }
+  
+    if (backgroundType === "color") {
+      return { backgroundColor: backgroundColor || "#000000" }
+    }
+    return { backgroundColor: "#000000" }
+  }
+
+
+  const handleMediaConfirm = () => {
+    setVideoAudioVolume(videoVolume);
+    handleNextStep("audio")
+  };
   const handleAudioConfirm = () => {
     handleNextStep("settings")
-  }
-  const handleSettingsKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !isCreating) {
-      handleFinalConfirm()
-    }
-  }
-  const compressVideo = async (file: File): Promise<Blob> => {
-    const maxSize = 15 * 1024 * 1024 
-    if (file.size <= maxSize) {
-      return file
-    }
-    return file
   }
   const handleFinalConfirm = async () => {
     setIsCreating(true)
@@ -144,7 +162,7 @@ export default function Home() {
       const { error } = await supabase.from("screens").insert(screenData)
 
       clearInterval(progressInterval)
-      setLoadingProgress(500)
+      setLoadingProgress(100)
 
       if (error) {
         console.error("[v0] Error saving to Supabase:", error)
@@ -160,36 +178,38 @@ export default function Home() {
       setLoadingProgress(0)
     }
   }
-  
-  const MAX_FILE_SIZE = 45 * 1024 * 1024 
+
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-  
+    const file = e.target.files?.[0];
+    if (!file) return;
     try {
-      const url = await uploadToSupabase(file, "backgrounds")
-      setBackgroundImage(url)
+      startUploading();
+      const url = await uploadToSupabase(file, "backgrounds");
+      finishUploading();
+      setBackgroundImage(url);
     } catch (error) {
-      console.error("Upload failed:", error)
-      alert("Failed to upload image.")
+      finishUploading();
+      alert("Failed to upload image.");
     }
-  }
+  };
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    startUploading();
+    const MAX_FILE_SIZE = 45 * 1024 * 1024 
     const file = e.target.files?.[0]
     if (!file) return
-  
     if (file.size > MAX_FILE_SIZE) {
       alert("File is too big! Maximum allowed size is 50MB.")
+      finishUploading();
       return
-    }
-  
+    }  
     try {
-      const compressedBlob = await compressVideo(file)
-      const compressedFile = new File([compressedBlob], file.name, { type: file.type, lastModified: Date.now() })
-      const url = await uploadToSupabase(compressedFile, "media")
+      const url = await uploadToSupabase(file, "media")
       setMediaUrl(url)
+      finishUploading();
     } catch (error) {
       console.error("Upload failed:", error)
+      finishUploading();
       alert("Failed to upload media.")
     }
   }
@@ -205,21 +225,7 @@ export default function Home() {
       alert("Failed to upload audio.")
     }
   }
-  const handleHexChange = (value: string) => {
-    let normalizedValue = value.trim()
-    if (normalizedValue && !normalizedValue.startsWith("#")) {
-      normalizedValue = "#" + normalizedValue
-    }
-    setBackgroundColor(normalizedValue || "#000000")
-  }
-  const getBackgroundStyle = () => {
-    if (step === "nickname") return { backgroundColor: "#000000" }
-  
-    if (backgroundType === "color") {
-      return { backgroundColor: backgroundColor || "#000000" }
-    }
-    return { backgroundColor: "#000000" }
-  }
+
 
   const hasBackgroundSelection =
     (backgroundType === "color" && backgroundColor.trim() !== "") ||
@@ -288,8 +294,16 @@ export default function Home() {
             <div className="text-white/60 text-base font-light tracking-wider">{loadingProgress}%</div>
           </div>
         )}
-
+        
+      <motion.div
+        className="flex items-center justify-center w-full h-full"
+        style={{
+          transform: `perspective(1000px) rotateX(${-mousePosition.y * 20}deg) rotateY(${mousePosition.x * 20}deg)`,
+          transition: "transform 0.1s ease-out"
+        }}
+       >
         <AnimatePresence mode="wait">
+          
           {/* NICKNAME STEP */}
           {step === "nickname" && (
             <NicknameStep
@@ -385,13 +399,14 @@ export default function Home() {
               setExpiryHours={setExpiryHours}
               showVideoControls={showVideoControls}
               setShowVideoControls={setShowVideoControls}
-              handleSettingsKeyPress={handleSettingsKeyPress}
               handleFinalConfirm={handleFinalConfirm}
               isCreating={isCreating}
             />
           )}
         </AnimatePresence>
-
+      </motion.div>
+      {uploading && <UploadOverlay progress={progress} />}
     </div>
+    
   )
 }

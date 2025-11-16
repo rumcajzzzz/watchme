@@ -42,15 +42,13 @@ export default function MediaStep({
   isLightBackground,
 }: MediaStepProps) {
 
-  
-
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.volume = videoVolume / 100; // 0-1
     }
-  }, [videoVolume, mediaUrl]);
+  }, [mediaType, videoVolume, mediaUrl]);
   
   return (
     <motion.div
@@ -61,7 +59,7 @@ export default function MediaStep({
       className="flex flex-col items-center gap-6 z-20"
       onKeyPress={handleMediaKeyPress}
       tabIndex={0}
-    >
+     >
       <h2
         className={`text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3 ${
           isLightBackground ? "text-primary" : "text-secondary"
@@ -75,31 +73,24 @@ export default function MediaStep({
         <button
           type="button"
           onClick={() => setMediaType("gif")}
-          className={`px-10 py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs ${
-            mediaType === "gif"
-              ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
-              : `${
-                  isLightBackground
-                    ? "text-black/60 hover:text-black/80 hover:bg-white/10"
-                    : "text-white/60 hover:text-white/90 hover:bg-white/10"
-                }`
-          }`}
-        >
+          className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-300 ${mediaType !== "gif" ? "hover:opacity-50" : ""} ${
+            mediaType === "gif" 
+            ? "bg-white text-primary shadow-lg shadow-white/50"
+            : isLightBackground ? "text-primary" : "text-secondary" 
+          } ${isLightBackground && mediaType === "gif" ? "bg-black! text-secondary" : ""}`}
+         >
           GIF
         </button>
         <button
           type="button"
           onClick={() => setMediaType("video")}
-          className={`px-10 py-3 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-xs ${
-            mediaType === "video"
-              ? "bg-white text-black shadow-[0_8px_24px_rgba(255,255,255,0.3)]"
-              : `${
-                  isLightBackground
-                    ? "text-black/60 hover:text-black/80 hover:bg-white/10"
-                    : "text-white/60 hover:text-white/90 hover:bg-white/10"
-                }`
-          }`}
-        >
+          className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-300 ${mediaType !== "video" ? "hover:opacity-50" : ""} ${
+            mediaType === "video" 
+            ? "bg-white text-primary shadow-lg shadow-white/50"
+            : isLightBackground ? "text-primary" : "text-secondary" 
+          } ${isLightBackground && mediaType === "video" ? "bg-black! text-secondary" : ""}`}
+         >
+        
           Video
         </button>
       </div>
