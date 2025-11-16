@@ -9,7 +9,7 @@ const Header: React.FC<HeaderProps> = ({ nickname }) => {
     <header className="fixed top-10 left-1/2 transform -translate-x-1/2 z-99999 flex flex-col items-center gap-2">
 <a
   href="/"
-  className="text-2xl text-white opacity-90 hover:opacity-100 transition cursor-pointer animate-bounce mix-blend-difference drop-shadow-[0_0_2px_black]"
+  className="text-2xl text-white opacity-90 hover:opacity-100 transition cursor-pointer mix-blend-difference drop-shadow-[0_0_2px_black]"
 >
   w4tchme!
 </a>
