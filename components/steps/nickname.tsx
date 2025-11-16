@@ -51,6 +51,7 @@ const NicknameStep: React.FC<NicknameStepProps> = ({
           >
             <button
               onClick={handleNicknameConfirm}
+              disabled={!hasNickname}
               className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500
                 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white
                 px-12 sm:px-16 py-4 sm:py-5 text-base sm:text-lg rounded-full mt-4

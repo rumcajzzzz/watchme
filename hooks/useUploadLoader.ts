@@ -10,9 +10,9 @@ export const useUploadLoader = () => {
 
     const interval = setInterval(() => {
       setProgress((p) => {
-        if (p >= 95) {
+        if (p >= 99) {
           clearInterval(interval);
-          return 95;
+          return 100;
         }
         return p + Math.random() * 8;
       });

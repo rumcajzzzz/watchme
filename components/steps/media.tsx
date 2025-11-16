@@ -7,6 +7,7 @@ export interface MediaStepProps {
   setMediaType: (t: "gif" | "video") => void;
 
   mediaUrl: string | null;
+  setMediaUrl: (url: string) => void;
   handleMediaUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
 
   mediaScale: number;
@@ -28,6 +29,7 @@ export interface MediaStepProps {
 export default function MediaStep({
   mediaType,
   setMediaType,
+  setMediaUrl,
   mediaUrl,
   handleMediaUpload,
   mediaScale,
@@ -72,7 +74,7 @@ export default function MediaStep({
       <div className="flex gap-2 p-1.5 bg-white/5 rounded-full backdrop-blur-md border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.3)]">
         <button
           type="button"
-          onClick={() => setMediaType("gif")}
+          onClick={() => {setMediaType("gif"); setMediaUrl(""); setMediaScale(100); setVideoScale(100)}}
           className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-300 ${mediaType !== "gif" ? "hover:opacity-50" : ""} ${
             mediaType === "gif" 
             ? "bg-white text-primary shadow-lg shadow-white/50"
@@ -83,7 +85,7 @@ export default function MediaStep({
         </button>
         <button
           type="button"
-          onClick={() => setMediaType("video")}
+          onClick={() => {setMediaType("video"); setMediaUrl(""); setMediaScale(100); setVideoScale(100)}}
           className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-300 ${mediaType !== "video" ? "hover:opacity-50" : ""} ${
             mediaType === "video" 
             ? "bg-white text-primary shadow-lg shadow-white/50"
@@ -228,7 +230,7 @@ export default function MediaStep({
                   <input
                     type="range"
                     min="0"
-                    max="100"
+                    max="200"
                     value={videoVolume}
                     onChange={(e) => setVideoVolume(Number(e.target.value))}
                     className="w-full accent-white"

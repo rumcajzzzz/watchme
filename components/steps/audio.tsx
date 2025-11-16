@@ -159,7 +159,7 @@ const AudioStep: React.FC<AudioStepProps> = ({
 
             <button
               type="button"
-              onClick={() => setAudioUrl("")}
+              onClick={() => {setAudioUrl(""); setAudioVolume(50)}}
               className="mt-2 px-4 py-2 text-xs text-white bg-red-500 rounded-full hover:bg-red-600 transition-all"
             >
               Remove Audio

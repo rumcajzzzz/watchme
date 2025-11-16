@@ -165,14 +165,14 @@ export default function Home() {
       setLoadingProgress(100)
 
       if (error) {
-        console.error("[v0] Error saving to Supabase:", error)
+        console.error("Error saving to Supabase:", error)
         throw error
       }
 
       await new Promise((resolve) => setTimeout(resolve, 500))
-      router.push(`/view/${id}`)
+      router.push(`/${id}`)
     } catch (error) {
-      console.error("[v0] Failed to create screen:", error)
+      console.error("Failed to create screen:", error)
       alert("Failed to create screen. Please try again.")
       setIsCreating(false)
       setLoadingProgress(0)
@@ -194,10 +194,11 @@ export default function Home() {
     }
   };
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    startUploading();
+    
     const MAX_FILE_SIZE = 45 * 1024 * 1024 
     const file = e.target.files?.[0]
     if (!file) return
+    startUploading();
     if (file.size > MAX_FILE_SIZE) {
       alert("File is too big! Maximum allowed size is 50MB.")
       finishUploading();
@@ -214,13 +215,16 @@ export default function Home() {
     }
   }
   const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    
     const file = e.target.files?.[0]
     if (!file) return
-  
+    startUploading();
     try {
       const url = await uploadToSupabase(file, "audio")
       setAudioUrl(url)
+      finishUploading();
     } catch (error) {
+      finishUploading();
       console.error("Upload failed:", error)
       alert("Failed to upload audio.")
     }
@@ -328,6 +332,7 @@ export default function Home() {
               setBackgroundType={setBackgroundType}
               backgroundColor={backgroundColor}
               setBackgroundColor={setBackgroundColor}
+              setBackgroundImage={setBackgroundImage}
               backgroundImage={backgroundImage}
               handleImageUpload={handleImageUpload}
               colorInputRef={colorInputRef}
@@ -348,6 +353,7 @@ export default function Home() {
               key="media"
               mediaType={mediaType}
               setMediaType={setMediaType}
+              setMediaUrl={setMediaUrl}
               mediaUrl={mediaUrl}
               handleMediaUpload={handleMediaUpload}
               mediaScale={mediaScale}
