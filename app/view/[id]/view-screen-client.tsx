@@ -153,7 +153,7 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             loop
             playsInline
             controls={screen.show_video_controls}
-            muted={!interactionDone ? screen.mute_original_audio : false}
+            muted={screen.mute_original_audio}
             disablePictureInPicture
             controlsList="nodownload nofullscreen noremoteplayback"
             className="transition-transform duration-1000 ease-out pointer-events-none opacity-100"

@@ -12,6 +12,7 @@ import AudioStep from "@/components/steps/audio"
 import SettingsStep from "@/components/steps/settings"
 
 import { useMediaSync } from "@/hooks/useMediaSync";
+import { AnimatePresence } from "framer-motion"
 
 const supabase = createClient()
 
@@ -60,7 +61,6 @@ export default function Home() {
   const [videoAudioVolume, setVideoAudioVolume] = useState<number>(50)
   const [muteOriginalAudio, setMuteOriginalAudio] = useState<boolean>(false)
   const [expiryHours, setExpiryHours] = useState<number>(1)
-  const [showContent, setShowContent] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [videoVolume, setVideoVolume] = useState<number>(100)
@@ -75,34 +75,7 @@ export default function Home() {
     muteOriginalAudio,
   });
   
-  useEffect(() => {
-    setTimeout(() => setShowContent(true), 100)
-  }, [])
   
-  const handleNicknameConfirm = () => {
-    setShowContent(false)
-    setTimeout(() => {
-      setStep("background")
-      setShowContent(true)
-    }, 500)
-  }
-  const handleNicknameKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && nickname.trim() !== "") {
-      handleNicknameConfirm()
-    }
-  }
-  const handleBackgroundConfirm = () => {
-    setShowContent(false)
-    setTimeout(() => {
-      setStep("media")
-      setShowContent(true)
-    }, 500)
-  }
-  const handleHexKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && hasBackgroundSelection) {
-      handleBackgroundConfirm()
-    }
-  }
   const handleMediaKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && hasMediaSelection) {
       handleMediaConfirm()
@@ -110,23 +83,16 @@ export default function Home() {
   }
   const handleMediaConfirm = () => {
     setVideoAudioVolume(videoVolume);
-    setShowContent(false);
-    setTimeout(() => {
-      setStep("audio");
-      setShowContent(true);
-    }, 500);
+    handleNextStep("audio")
   };
+
   const handleAudioKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       handleAudioConfirm()
     }
   }
   const handleAudioConfirm = () => {
-    setShowContent(false)
-    setTimeout(() => {
-      setStep("settings")
-      setShowContent(true)
-    }, 500)
+    handleNextStep("settings")
   }
   const handleSettingsKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !isCreating) {
@@ -138,7 +104,6 @@ export default function Home() {
     if (file.size <= maxSize) {
       return file
     }
-    console.log("[v0] Video file is over 15MB, compression recommended")
     return file
   }
   const handleFinalConfirm = async () => {
@@ -179,7 +144,7 @@ export default function Home() {
       const { error } = await supabase.from("screens").insert(screenData)
 
       clearInterval(progressInterval)
-      setLoadingProgress(100)
+      setLoadingProgress(500)
 
       if (error) {
         console.error("[v0] Error saving to Supabase:", error)
@@ -242,7 +207,6 @@ export default function Home() {
   }
   const handleHexChange = (value: string) => {
     let normalizedValue = value.trim()
-    // If user types without #, add it
     if (normalizedValue && !normalizedValue.startsWith("#")) {
       normalizedValue = "#" + normalizedValue
     }
@@ -262,15 +226,16 @@ export default function Home() {
     (backgroundType === "image" && backgroundImage.trim() !== "")
 
   const hasMediaSelection = (mediaUrl || "").trim() !== ""
-  const hasNickname = nickname.trim() !== ""
   const isLightBackground = tinycolor(backgroundColor).isLight();
+
+  const handleNextStep = (next: typeof step) => setStep(next);
 
   return (
     <div
       className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-all duration-700"
       style={getBackgroundStyle()}
     >
-      {backgroundType === "image" && backgroundImage && (
+        {backgroundType === "image" && backgroundImage && (
           <img
             src={backgroundImage}
             alt="Background"
@@ -285,36 +250,6 @@ export default function Home() {
             }}
           />
         )}
-
-        {/* Media display */}
-        {/* {(step === "audio" || step === "settings") && mediaUrl && (
-          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-            {mediaType === "video" ? (
-              <video
-                src={mediaUrl}
-                playsInline
-                controls={false}
-                disablePictureInPicture
-                controlsList="nodownload nofullscreen noremoteplayback"
-                className="pointer-events-none select-none object-contain max-h-[80vh]"
-                tabIndex={-1}
-              />
-            ) : (
-              <img
-                src={mediaUrl}
-                alt=""
-                draggable={false}
-                className="pointer-events-none select-none object-contain max-h-[80vh]"
-              />
-            )}
-          </div>
-        )} */}
-
-        {/* {nickname && step != "nickname" && (
-          <div className="absolute top-15 w-full text-center text-white text-xs font-light tracking-[0.2em] uppercase">
-            {nickname}
-          </div>
-        )} */}
 
         {/* Hidden audio elements */}
         {audioUrl && (
@@ -353,107 +288,109 @@ export default function Home() {
             <div className="text-white/60 text-base font-light tracking-wider">{loadingProgress}%</div>
           </div>
         )}
-    
-        {/* NICKNAME STEP */}
-        {step === "nickname" && (
-          <NicknameStep
-            nickname={nickname}
-            setNickname={setNickname}
-            hasNickname={hasNickname}
-            showContent={showContent}
-            handleNicknameKeyPress={handleNicknameKeyPress}
-            handleNicknameConfirm={handleNicknameConfirm}
-          />
-        )}  
 
-        {/* BACKGROUND STEP */}
-        {step === "background" && (
-          <BackgroundStep
-            showContent={showContent}
-            backgroundType={backgroundType}
-            setBackgroundType={setBackgroundType}
-            backgroundColor={backgroundColor}
-            setBackgroundColor={setBackgroundColor}
-            backgroundImage={backgroundImage}
-            handleImageUpload={handleImageUpload}
-            colorInputRef={colorInputRef}
-            handleHexChange={handleHexChange}
-            handleHexKeyPress={handleHexKeyPress}
-            imageOpacity={imageOpacity}
-            setImageOpacity={setImageOpacity}
-            imageScale={imageScale}
-            setImageScale={setImageScale}
-            hasBackgroundSelection={hasBackgroundSelection}
-            handleBackgroundConfirm={handleBackgroundConfirm}
-            isLightBackground={isLightBackground}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {/* NICKNAME STEP */}
+          {step === "nickname" && (
+            <NicknameStep
+              key="nickname"
+              nickname={nickname}
+              setNickname={setNickname}
+              hasNickname={nickname.trim() !== ""}
+              handleNicknameKeyPress={(e) => {
+                if (e.key === "Enter" && nickname.trim() !== "") {
+                  handleNextStep("background");
+                }
+              }}
+              handleNicknameConfirm={() => handleNextStep("background")}
+            />
+          )}  
 
-        {/* MEDIA STEP */}
-        {step === "media" && (
-          <MediaStep
-             showContent={true}
-             step={step}
-             mediaType={mediaType}
-             setMediaType={setMediaType}
-             mediaUrl={mediaUrl}
-             handleMediaUpload={handleMediaUpload}
-             mediaScale={mediaScale}
-             setMediaScale={setMediaScale}
-             videoScale={videoScale}
-             setVideoScale={setVideoScale}
-             videoVolume={videoVolume}
-             setVideoVolume={setVideoVolume}
-             handleMediaKeyPress={handleMediaKeyPress}
-             handleMediaConfirm={handleMediaConfirm}
-             hasMediaSelection={hasMediaSelection}
-             isLightBackground={isLightBackground}
-           />
-        )}
+          {/* BACKGROUND STEP */}
+          {step === "background" && (
+            <BackgroundStep
+              key="background"
+              backgroundType={backgroundType}
+              setBackgroundType={setBackgroundType}
+              backgroundColor={backgroundColor}
+              setBackgroundColor={setBackgroundColor}
+              backgroundImage={backgroundImage}
+              handleImageUpload={handleImageUpload}
+              colorInputRef={colorInputRef}
+              handleHexChange={handleHexChange}
+              imageOpacity={imageOpacity}
+              setImageOpacity={setImageOpacity}
+              imageScale={imageScale}
+              setImageScale={setImageScale}
+              hasBackgroundSelection={hasBackgroundSelection}
+              handleBackgroundConfirm={() => handleNextStep("media")}
+              isLightBackground={isLightBackground}
+            />
+          )}
 
-        {/* AUDIO STEP */}
-        {step === "audio" && (
-          <AudioStep
-            showContent={true}
-            step={step}
-            mediaType={mediaType}
-            mediaUrl={mediaUrl}
-            mediaScale={mediaScale}
-            audioVolume={audioVolume}
-            videoScale={videoScale}
-            videoVolume={videoVolume}
-            muteOriginalAudio={muteOriginalAudio}
-            videoAudioUrl={videoAudioUrl}
-            videoAudioVolume={videoAudioVolume}
-            audioUrl={audioUrl}
-            isLightBackground={isLightBackground}
-            setAudioUrl={setAudioUrl}
-            setAudioVolume={setAudioVolume}
-            setMuteOriginalAudio={setMuteOriginalAudio}
-            setVideoAudioVolume={setVideoAudioVolume}
-            handleAudioUpload={handleAudioUpload}
-            handleAudioKeyPress={handleAudioKeyPress}
-            handleAudioConfirm={handleAudioConfirm}
-            videoRef={videoRef}
-          />
-        )}
+          {/* MEDIA STEP */}
+          {step === "media" && (
+            <MediaStep
+              key="media"
+              mediaType={mediaType}
+              setMediaType={setMediaType}
+              mediaUrl={mediaUrl}
+              handleMediaUpload={handleMediaUpload}
+              mediaScale={mediaScale}
+              setMediaScale={setMediaScale}
+              videoScale={videoScale}
+              setVideoScale={setVideoScale}
+              videoVolume={videoVolume}
+              setVideoVolume={setVideoVolume}
+              handleMediaKeyPress={handleMediaKeyPress}
+              handleMediaConfirm={handleMediaConfirm}
+              hasMediaSelection={hasMediaSelection}
+              isLightBackground={isLightBackground}
+            />
+          )}
 
-        {/* SETTINGS STEP */}
-        {step === "settings" && (
-          <SettingsStep
-            showContent={showContent}
-            step={step}
-            isLightBackground={isLightBackground}
-            mediaType={mediaType}
-            expiryHours={expiryHours}
-            setExpiryHours={setExpiryHours}
-            showVideoControls={showVideoControls}
-            setShowVideoControls={setShowVideoControls}
-            handleSettingsKeyPress={handleSettingsKeyPress}
-            handleFinalConfirm={handleFinalConfirm}
-            isCreating={isCreating}
-          />
-        )}
+          {/* AUDIO STEP */}
+          {step === "audio" && (
+            <AudioStep
+              key="audio"
+              mediaType={mediaType}
+              mediaUrl={mediaUrl}
+              mediaScale={mediaScale}
+              audioVolume={audioVolume}
+              videoScale={videoScale}
+              videoVolume={videoVolume}
+              muteOriginalAudio={muteOriginalAudio}
+              videoAudioUrl={videoAudioUrl}
+              videoAudioVolume={videoAudioVolume}
+              audioUrl={audioUrl}
+              isLightBackground={isLightBackground}
+              setAudioUrl={setAudioUrl}
+              setAudioVolume={setAudioVolume}
+              setMuteOriginalAudio={setMuteOriginalAudio}
+              setVideoAudioVolume={setVideoAudioVolume}
+              handleAudioUpload={handleAudioUpload}
+              handleAudioKeyPress={handleAudioKeyPress}
+              handleAudioConfirm={handleAudioConfirm}
+              videoRef={videoRef}
+            />
+          )}
+
+          {/* SETTINGS STEP */}
+          {step === "settings" && (
+            <SettingsStep
+              key="settings"
+              isLightBackground={isLightBackground}
+              mediaType={mediaType}
+              expiryHours={expiryHours}
+              setExpiryHours={setExpiryHours}
+              showVideoControls={showVideoControls}
+              setShowVideoControls={setShowVideoControls}
+              handleSettingsKeyPress={handleSettingsKeyPress}
+              handleFinalConfirm={handleFinalConfirm}
+              isCreating={isCreating}
+            />
+          )}
+        </AnimatePresence>
 
     </div>
   )

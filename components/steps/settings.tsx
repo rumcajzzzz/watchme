@@ -1,8 +1,7 @@
+import { easeOut, motion } from "framer-motion";
 import React from "react";
 
 interface SettingsStepProps {
-  showContent: boolean;
-  step: string;
   isLightBackground: boolean;
   mediaType: "gif" | "video";
   expiryHours: number;
@@ -15,8 +14,6 @@ interface SettingsStepProps {
 }
 
 const SettingsStep: React.FC<SettingsStepProps> = ({
-  showContent,
-  step,
   isLightBackground,
   mediaType,
   expiryHours,
@@ -27,15 +24,14 @@ const SettingsStep: React.FC<SettingsStepProps> = ({
   handleFinalConfirm,
   isCreating,
 }) => {
-  if (step !== "settings") return null;
 
   return (
-    <div
-      className={`flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
-        showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
-      onKeyPress={handleSettingsKeyPress}
-      tabIndex={0}
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -30, scale: 0.95 }}
+      transition={{ duration: 0.8, ease: easeOut }}
+      className="flex flex-col items-center gap-5 sm:gap-6 z-20"
     >
       <h2
         className={`text-3xl font-extralight drop-shadow-lg tracking-[0.2em] uppercase mb-3 ${
@@ -142,7 +138,7 @@ const SettingsStep: React.FC<SettingsStepProps> = ({
         <span className="relative z-10">Create Link →</span>
         <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
       </button>
-    </div>
+    </motion.div>
   );
 };
 

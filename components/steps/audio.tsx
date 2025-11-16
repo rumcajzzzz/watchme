@@ -1,8 +1,7 @@
+import { easeOut, motion } from "framer-motion";
 import React, { RefObject } from "react";
 
 interface AudioStepProps {
-  showContent: boolean;
-  step: string;
   mediaType: "gif" | "video";
   mediaUrl: string | null;
   mediaScale: number;
@@ -25,8 +24,6 @@ interface AudioStepProps {
 }
 
 const AudioStep: React.FC<AudioStepProps> = ({
-  showContent,
-  step,
   mediaType,
   mediaUrl,
   mediaScale,
@@ -47,15 +44,16 @@ const AudioStep: React.FC<AudioStepProps> = ({
   handleAudioConfirm,
   videoRef,
 }) => {
-  if (step !== "audio") return null;
 
+
+  
   return (
-    <div
-      className={`relative flex flex-col items-center gap-6 z-20 transition-all duration-1000 ${
-        showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
-      onKeyUp={handleAudioKeyPress}
-      tabIndex={0}
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -30, scale: 0.95 }}
+      transition={{ duration: 0.8, ease: easeOut }}
+      className="flex flex-col items-center gap-5 sm:gap-6 z-20"
     >
       {/* MEDIA PREVIEW */}
       {mediaUrl && (
@@ -227,7 +225,7 @@ const AudioStep: React.FC<AudioStepProps> = ({
         <span className="relative z-10">{audioUrl || videoAudioUrl ? "Next →" : "Skip →"}</span>
         <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
       </button>
-    </div>
+    </motion.div>
   );
 };
 

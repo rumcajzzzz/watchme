@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
+import { easeOut, motion } from "framer-motion";
 
 interface BackgroundStepProps {
-  showContent: boolean;
   backgroundType: "color" | "image";
   setBackgroundType: (type: "color" | "image") => void;
 
@@ -16,7 +16,6 @@ interface BackgroundStepProps {
   colorInputRef: React.RefObject<HTMLInputElement | null>;
 
   handleHexChange: (value: string) => void;
-  handleHexKeyPress: (e: React.KeyboardEvent<HTMLInputElement>) => void;
 
   imageOpacity: number;
   setImageOpacity: (value: number) => void;
@@ -31,7 +30,6 @@ interface BackgroundStepProps {
 }
 
 const BackgroundStep: React.FC<BackgroundStepProps> = ({
-  showContent,
   backgroundType,
   setBackgroundType,
   backgroundColor,
@@ -40,7 +38,6 @@ const BackgroundStep: React.FC<BackgroundStepProps> = ({
   handleImageUpload,
   colorInputRef,
   handleHexChange,
-  handleHexKeyPress,
   imageOpacity,
   setImageOpacity,
   imageScale,
@@ -50,10 +47,12 @@ const BackgroundStep: React.FC<BackgroundStepProps> = ({
   isLightBackground,
 }) => {
   return (
-    <div
-      className={`flex flex-col items-center gap-5 sm:gap-6 z-20 ${
-        showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -30, scale: 0.95 }}
+      transition={{ duration: 0.8, ease: easeOut }}
+      className="flex flex-col items-center gap-5 sm:gap-6 z-20"
     >
       <h1
         className={`text-2xl sm:text-3xl font-extralight tracking-[0.2em] uppercase mb-2 sm:mb-3 text-center transition-all duration-1000 ${
@@ -81,7 +80,7 @@ const BackgroundStep: React.FC<BackgroundStepProps> = ({
             setBackgroundType("image");
             setBackgroundColor("#000000");
           }}
-          className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs transition-all duration-1000 ${
+          className={`px-6 sm:px-10 py-2 sm:py-3 rounded-full font-light tracking-[0.15em] uppercase text-[10px] sm:text-xs ${
             isLightBackground ? "text-primary" : "text-secondary"
           }`}
         >
@@ -103,7 +102,6 @@ const BackgroundStep: React.FC<BackgroundStepProps> = ({
               type="text"
               value={backgroundColor || "#000000"}
               onChange={(e) => handleHexChange(e.target.value)}
-              onKeyPress={handleHexKeyPress}
               className={`bg-white/10 px-4 sm:px-6 py-2 sm:py-3 rounded-full text-center backdrop-blur-md border border-white/30 focus:border-white/70 focus:outline-none focus:ring-4 focus:ring-white/20 transition-colors duration-500 font-mono text-sm sm:text-base tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)] w-40 sm:w-48 ${
                 isLightBackground ? "text-primary" : "text-secondary"
               }`}
@@ -172,24 +170,25 @@ const BackgroundStep: React.FC<BackgroundStepProps> = ({
         )}
       </div>
 
-      {/* NEXT BUTTON */}
-      <div
-        className={`transition-all duration-700 ease-out mt-4 sm:mt-6 ${
-          hasBackgroundSelection
-            ? "opacity-100 translate-y-0 pointer-events-auto"
-            : "opacity-0 translate-y-4 pointer-events-none"
-        }`}
-      >
-        <button
-          type="button"
-          onClick={handleBackgroundConfirm}
-          className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-10 sm:px-16 py-4 sm:py-5 text-sm sm:text-lg rounded-full font-light tracking-[0.2em] uppercase shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:shadow-[0_0_70px_rgba(16,185,129,0.7)] hover:scale-105 transition-all duration-500"
-        >
-          <span className="relative z-10">Next →</span>
-          <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
-        </button>
-      </div>
-    </div>
+     {/* NEXT BUTTON */}
+     <div
+       className={`transition-all ease-out mt-4 sm:mt-6 ${
+         hasBackgroundSelection
+           ? "opacity-100 translate-y-0 pointer-events-auto"
+           : "opacity-0 translate-y-4 pointer-events-none"
+       }`}
+     >
+       <button
+         type="button"
+         onClick={handleBackgroundConfirm}
+         className="group relative bg-linear-to-r from-emerald-500 via-green-500 to-emerald-500 hover:from-emerald-400 hover:via-green-400 hover:to-emerald-400 text-white px-10 sm:px-16 py-4 sm:py-5 text-sm sm:text-lg rounded-full font-light tracking-[0.2em] uppercase shadow-[0_0_40px_rgba(16,185,129,0.5)] hover:shadow-[0_0_70px_rgba(16,185,129,0.7)] hover:scale-105 transition-all duration-500"
+       >
+         <span className="relative z-10">Next →</span>
+         <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-2xl bg-emerald-400" />
+       </button>
+     </div>
+      
+    </motion.div>
   );
 };
 
