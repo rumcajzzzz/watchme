@@ -3,7 +3,6 @@
 import CopyLinkButton from "@/components/copyLinkButton"
 import { motion } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
-import tinycolor from "tinycolor2"
 
 type ScreenData = {
   id: string
@@ -89,12 +88,12 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
       })
     }
   }, [screen.video_audio_volume])
-  useEffect(() => {
-    const checkOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight)
-    window.addEventListener("resize", checkOrientation)
-    checkOrientation()
-    return () => window.removeEventListener("resize", checkOrientation)
-  }, [])
+  // useEffect(() => {
+  //   const checkOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight)
+  //   window.addEventListener("resize", checkOrientation)
+  //   checkOrientation()
+  //   return () => window.removeEventListener("resize", checkOrientation)
+  // }, [])
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space") startInteraction()
@@ -103,15 +102,15 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [interactionDone])
 
-  if (!isLandscape) {
-    return (
-      <div className={`fixed inset-0 flex items-center justify-center bg-black text-white text-center p-4 transition-opacity duration-500 ${
-          isLandscape ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}>
-        <p>Rotate your phone to landscape to continue.</p>
-      </div>
-    )
-  }
+  // if (!isLandscape) {
+  //   return (
+  //     <div className={`fixed inset-0 flex items-center justify-center bg-black text-white text-center p-4 transition-opacity duration-500 ${
+  //         isLandscape ? "opacity-0 pointer-events-none" : "opacity-100"
+  //       }`}>
+  //       <p>Rotate your phone to landscape to continue.</p>
+  //     </div>
+  //   )
+  // }
   if (!interactionDone || !showScreen) {
     return (
       <div

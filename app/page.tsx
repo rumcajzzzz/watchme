@@ -244,7 +244,7 @@ export default function Home() {
     <div
       className="fixed inset-0 w-screen h-screen overflow-hidden flex items-center justify-center transition-all duration-700"
       style={getBackgroundStyle()}
-    >
+     >
         {backgroundType === "image" && backgroundImage && (
           <img
             src={backgroundImage}
@@ -413,6 +413,5 @@ export default function Home() {
       </motion.div>
       {uploading && <UploadOverlay progress={progress} />}
     </div>
-    
   )
 }
