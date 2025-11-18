@@ -90,6 +90,8 @@ const AudioStep: React.FC<AudioStepProps> = ({
               src={mediaUrl}
               autoPlay
               loop
+              muted={muteOriginalAudio}
+              playsInline
               style={{
                 position: "absolute",
                 top: "50%",
@@ -102,6 +104,7 @@ const AudioStep: React.FC<AudioStepProps> = ({
                 pointerEvents: "none",
                 zIndex: 0,
                 opacity: 0.15,
+                
               }}
             />
           )}
