@@ -33,11 +33,12 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
   const [interactionDone, setInteractionDone] = useState(false)
   const [showScreen, setShowScreen] = useState(false)
   const [isLandscape, setIsLandscape] = useState(true)
-
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
+  const isMobileScreen = typeof window !== "undefined" && 'ontouchstart' in window;
+
   const handleMouseMove = (e: React.MouseEvent) => {
-    if ('ontouchstart' in window) return
+    if (isMobileScreen) return
     const x = (e.clientX / window.innerWidth) * 2 - 1
     const y = (e.clientY / window.innerHeight) * 2 - 1
     setMousePosition({ x, y })
@@ -183,12 +184,13 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
             <video
               ref={videoRef}
               src={screen.media_url}
+              autoPlay 
               loop
               playsInline
               muted={screen.mute_original_audio}
               className="pointer-events-none"
               style={{
-                height: `${screen.video_scale}vh`,
+                height: `${isMobileScreen ?  screen.video_scale/0.8 : screen.video_scale}vh`,
                 width: "auto",
                 maxWidth: "100vw",
               }}
