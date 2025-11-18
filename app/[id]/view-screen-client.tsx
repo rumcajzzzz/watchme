@@ -37,6 +37,7 @@ export default function ViewScreenClient({ screen }: { screen: ScreenData }) {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    if ('ontouchstart' in window) return
     const x = (e.clientX / window.innerWidth) * 2 - 1
     const y = (e.clientY / window.innerHeight) * 2 - 1
     setMousePosition({ x, y })

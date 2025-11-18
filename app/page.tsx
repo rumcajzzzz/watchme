@@ -72,6 +72,7 @@ export default function Home() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
+      if ('ontouchstart' in window) return
       const x = (e.clientX / window.innerWidth - 0.5) * 3;
       const y = (e.clientY / window.innerHeight - 0.5) * 3;
       setMousePosition({ x, y });
