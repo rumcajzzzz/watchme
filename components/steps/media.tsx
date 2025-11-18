@@ -110,7 +110,7 @@ export default function MediaStep({
 
         <label htmlFor="media-upload" className="cursor-pointer">
           <div
-            className={`px-12 py-5 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-base backdrop-blur-md border ${
+            className={`px-12 py-5 rounded-full transition-all duration-500 font-light tracking-[0.15em] uppercase text-base backdrop-blur-md border drop-shadow-[0_0_10px_rgba(255,255,255,1)] ${
               isLightBackground
                 ? "bg-white/5 border-black/20 text-black/80 hover:bg-black/20 hover:text-black"
                 : "bg-white/5 border-white/20 text-white/80 hover:bg-white/10 hover:text-white"

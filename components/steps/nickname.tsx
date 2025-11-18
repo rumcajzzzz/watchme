@@ -40,7 +40,7 @@ const NicknameStep: React.FC<NicknameStepProps> = ({
               backdrop-blur-md border border-white/30 focus:border-white/70
               focus:outline-none focus:ring-4 focus:ring-white/20 transition-all duration-500
               text-lg sm:text-xl tracking-wider shadow-[0_8px_32px_rgba(0,0,0,0.3)]
-              placeholder:text-white/30 w-full max-w-[340px]"
+              placeholder:text-white/30 w-full max-w-[340px] drop-shadow-[0_0_20px_rgba(255,255,255,0.8)]"
           />
 
           <motion.div
